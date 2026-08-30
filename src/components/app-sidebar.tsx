@@ -105,7 +105,7 @@ export function AppSidebar() {
               <SidebarMenuButton
                 isActive={pathname === item.href}
                 render={<Link href={item.href} />}
-                className="h-auto py-3 px-[15px] gap-[13px] rounded-[11px] text-[15.5px] font-medium text-sidebar-foreground/85 data-[active=true]:font-semibold"
+                className="h-auto py-3 px-[15px] gap-[13px] rounded-[11px] text-[15.5px] font-medium text-sidebar-foreground/85 hover:bg-secondary hover:text-foreground data-active:bg-primary/10 data-active:text-primary data-active:font-semibold"
               >
                 <NavIcon>{item.icon}</NavIcon>
                 {item.label}
