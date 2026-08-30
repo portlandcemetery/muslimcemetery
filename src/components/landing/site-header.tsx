@@ -1,3 +1,6 @@
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
 const NAV_LINKS = [
   { href: "#mission", label: "Mission" },
   { href: "#rules", label: "Cemetery Rules" },
@@ -19,7 +22,7 @@ export function SiteHeader() {
             <span className="font-bold text-[17px] tracking-[-0.01em]">
               Islamic Center of Portland
             </span>
-            <span className="text-[11.5px] tracking-[0.14em] uppercase text-taupe font-semibold">
+            <span className="text-[11.5px] tracking-[0.14em] uppercase text-muted-foreground/90 font-semibold">
               Memorial Gardens
             </span>
           </span>
@@ -29,14 +32,17 @@ export function SiteHeader() {
             <a
               key={link.href}
               href={link.href}
-              className="py-[9px] px-[15px] text-slate text-[14.5px] font-medium rounded-lg transition-colors hover:bg-muted hover:text-foreground"
+              className="py-[9px] px-[15px] text-foreground/85 text-[14.5px] font-medium rounded-lg transition-colors hover:bg-muted hover:text-foreground"
             >
               {link.label}
             </a>
           ))}
           <a
             href="#portal"
-            className="ml-[10px] py-[10px] px-5 bg-primary text-primary-foreground text-[14.5px] font-semibold rounded-full transition-colors hover:bg-primary-hover"
+            className={cn(
+              buttonVariants(),
+              "ml-[10px] h-auto py-[10px] px-5 text-[14.5px] font-semibold rounded-full",
+            )}
           >
             Portal Sign In
           </a>

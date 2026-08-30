@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Card } from "@/components/ui/card";
 
 type ContactCard = {
   label: string;
@@ -60,11 +61,11 @@ export function ContactSection() {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {CARDS.map((c) => (
-            <div
+            <Card
               key={c.label}
-              className="bg-card border border-card-border rounded-2xl py-[30px] px-7 text-center"
+              className="border-border rounded-2xl py-[30px] px-7 text-center items-center gap-0"
             >
-              <div className="w-[46px] h-[46px] rounded-[50%_50%_10px_10px/62%_62%_10px_10px] bg-emerald-tint flex items-center justify-center text-primary mx-auto mb-4">
+              <div className="w-[46px] h-[46px] rounded-[50%_50%_10px_10px/62%_62%_10px_10px] bg-primary/10 flex items-center justify-center text-primary mx-auto mb-4">
                 <svg
                   width="20"
                   height="20"
@@ -78,13 +79,13 @@ export function ContactSection() {
                   {c.icon}
                 </svg>
               </div>
-              <div className="text-[12.5px] font-bold tracking-[0.08em] uppercase text-taupe-light mb-2">
+              <div className="text-[12.5px] font-bold tracking-[0.08em] uppercase text-muted-foreground/80 mb-2">
                 {c.label}
               </div>
-              <div className="text-base text-ink-strong leading-[1.6]">
+              <div className="text-base text-card-foreground leading-[1.6]">
                 {c.body}
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       </div>

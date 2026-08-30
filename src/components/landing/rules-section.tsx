@@ -1,4 +1,5 @@
-import { Diamond } from "./diamond";
+import { Card } from "@/components/ui/card";
+import { Diamond } from "@/components/diamond";
 
 const RULES = [
   "Visiting hours are strictly from dawn to dusk daily.",
@@ -30,17 +31,19 @@ export function RulesSection() {
             visitors are kindly asked to observe the following.
           </p>
         </div>
-        <div className="bg-card border border-card-border rounded-[20px] py-[14px] px-10 shadow-[0_24px_60px_-44px_rgba(34,39,31,.5)]">
+        <Card className="border-border rounded-[20px] py-[14px] px-10 gap-0 shadow-[0_24px_60px_-44px_rgba(34,39,31,.5)]">
           {RULES.map((text, i) => (
             <div
               key={i}
-              className="flex gap-5 items-center py-[22px] border-b border-divider last:border-b-0"
+              className="flex gap-5 items-center py-[22px] border-b border-border last:border-b-0"
             >
-              <Diamond size={26} fill="var(--color-gold)" className="flex-none" />
-              <p className="text-[17px] text-ink-strong leading-[1.55]">{text}</p>
+              <Diamond size={26} variant="fill" className="text-accent flex-none" />
+              <p className="text-[17px] text-card-foreground leading-[1.55]">
+                {text}
+              </p>
             </div>
           ))}
-        </div>
+        </Card>
       </div>
     </section>
   );

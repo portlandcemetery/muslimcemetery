@@ -1,19 +1,19 @@
 type DiamondProps = {
   size?: number;
-  stroke?: string;
-  fill?: string;
+  variant?: "stroke" | "fill";
   strokeWidth?: number;
   className?: string;
 };
 
+/** Brand diamond motif. Color comes from the current text color (set via a
+ *  text-* token class), so it stays on shadcn tokens. */
 export function Diamond({
   size = 18,
-  stroke = "#b0894a",
-  fill = "none",
+  variant = "stroke",
   strokeWidth = 1.5,
   className,
 }: DiamondProps) {
-  const solid = fill !== "none";
+  const solid = variant === "fill";
   return (
     <svg
       width={size}
@@ -23,8 +23,8 @@ export function Diamond({
       aria-hidden="true"
     >
       <g
-        fill={fill}
-        stroke={solid ? "none" : stroke}
+        fill={solid ? "currentColor" : "none"}
+        stroke={solid ? "none" : "currentColor"}
         strokeWidth={strokeWidth}
       >
         <rect x="6" y="6" width="12" height="12" />
