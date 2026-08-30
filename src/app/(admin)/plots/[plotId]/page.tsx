@@ -1,4 +1,4 @@
-import { ComingSoon } from "@/components/dashboard/coming-soon";
+import { PlotDetailForm } from "@/components/plots/plot-detail-form";
 
 export default async function PlotDetailPage({
   params,
@@ -6,5 +6,5 @@ export default async function PlotDetailPage({
   params: Promise<{ plotId: string }>;
 }) {
   const { plotId } = await params;
-  return <ComingSoon title={`Plot ${plotId.toUpperCase()}`} />;
+  return <PlotDetailForm plotId={plotId.toUpperCase()} />;
 }
