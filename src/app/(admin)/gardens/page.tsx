@@ -1,5 +1,11 @@
-import { ComingSoon } from "@/components/dashboard/coming-soon";
+import { GardenHeader } from "@/components/gardens/garden-header";
+import { GardenMap } from "@/components/gardens/garden-map";
 
 export default function GardensPage() {
-  return <ComingSoon title="Gardens" />;
+  return (
+    <div className="flex h-svh flex-col overflow-hidden">
+      <GardenHeader />
+      <GardenMap />
+    </div>
+  );
 }

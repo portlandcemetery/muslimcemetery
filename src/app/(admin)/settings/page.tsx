@@ -6,7 +6,7 @@ import { AuditLog } from "@/components/settings/audit-log";
 
 export default function SettingsPage() {
   return (
-    <div className="max-w-[940px]">
+    <div className="max-w-[940px] px-[44px] pt-[38px] pb-[56px]">
       <div className="mb-[30px]">
         <h1 className="font-extrabold text-[38px] tracking-[-0.02em] mb-[6px]">
           Settings

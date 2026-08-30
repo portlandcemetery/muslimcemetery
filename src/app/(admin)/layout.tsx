@@ -14,7 +14,7 @@ export default function AdminLayout({
     >
       <AppSidebar />
       <SidebarInset className="h-svh overflow-y-auto dash-scroll bg-background">
-        <div className="px-[44px] pt-[38px] pb-[56px]">{children}</div>
+        {children}
       </SidebarInset>
     </SidebarProvider>
   );

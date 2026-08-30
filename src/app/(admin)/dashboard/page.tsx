@@ -6,7 +6,7 @@ import { RecentActivity } from "@/components/dashboard/recent-activity";
 
 export default function DashboardPage() {
   return (
-    <>
+    <div className="px-[44px] pt-[38px] pb-[56px]">
       <DashboardHeader />
       <PlotSearch />
       <StatCards />
@@ -14,6 +14,6 @@ export default function DashboardPage() {
         <GardenAllocation />
         <RecentActivity />
       </div>
-    </>
+    </div>
   );
 }

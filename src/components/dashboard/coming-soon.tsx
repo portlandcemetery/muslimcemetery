@@ -1,6 +1,6 @@
 export function ComingSoon({ title }: { title: string }) {
   return (
-    <div>
+    <div className="px-[44px] pt-[38px] pb-[56px]">
       <h1 className="font-extrabold text-[38px] tracking-[-0.02em] mb-[6px]">
         {title}
       </h1>

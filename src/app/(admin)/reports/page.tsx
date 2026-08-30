@@ -5,7 +5,7 @@ import { RecentExports } from "@/components/reports/recent-exports";
 
 export default function ReportsPage() {
   return (
-    <div>
+    <div className="px-[44px] pt-[38px] pb-[56px]">
       <div className="mb-[30px]">
         <h1 className="font-extrabold text-[38px] tracking-[-0.02em] mb-[6px]">
           Reports &amp; Records
