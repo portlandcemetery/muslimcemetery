@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Diamond } from "@/components/diamond";
 
 type Garden = {
+  id: string;
   name: string;
   arabic: string;
   total: number;
@@ -12,9 +13,9 @@ type Garden = {
 };
 
 const RAW: Omit<Garden, never>[] = [
-  { name: "Garden A – Al-Firdaus", arabic: "الفردوس", total: 800, occupied: 420, reserved: 110, available: 270 },
-  { name: "Garden B – Al-Kawthar", arabic: "الكوثر", total: 628, occupied: 280, reserved: 84, available: 264 },
-  { name: "Garden C – Ar-Rawdah", arabic: "الروضة", total: 600, occupied: 147, reserved: 40, available: 413 },
+  { id: "a", name: "Garden A – Al-Firdaus", arabic: "الفردوس", total: 800, occupied: 420, reserved: 110, available: 270 },
+  { id: "b", name: "Garden B – Al-Kawthar", arabic: "الكوثر", total: 628, occupied: 280, reserved: 84, available: 264 },
+  { id: "c", name: "Garden C – Ar-Rawdah", arabic: "الروضة", total: 600, occupied: 147, reserved: 40, available: 413 },
 ];
 
 const pct = (n: number, total: number) => `${((n / total) * 100).toFixed(2)}%`;
@@ -37,7 +38,11 @@ export function GardenAllocation() {
 
       <div className="flex flex-col gap-4">
         {RAW.map((g) => (
-          <Link key={g.name} href="/gardens" className="block">
+          <Link
+            key={g.name}
+            href={`/gardens?garden=${g.id}`}
+            className="block"
+          >
             <Card className="border-border rounded-2xl py-[26px] px-7 gap-0 transition-shadow hover:border-accent hover:shadow-[0_14px_34px_-26px_rgba(34,39,31,.5)]">
               <div className="flex items-start justify-between gap-4 mb-[18px]">
                 <div className="flex items-baseline gap-3">

@@ -1,3 +1,4 @@
+import { FileText } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 type ExportRow = { name: string; by: string; date: string; size: string };
@@ -21,10 +22,7 @@ export function RecentExports() {
             key={e.name}
             className="flex items-center gap-4 py-4 px-6 border-b border-border last:border-b-0"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary flex-none">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <path d="M14 2v6h6" />
-            </svg>
+            <FileText size={18} strokeWidth={2} className="text-primary flex-none" />
             <div className="flex-1 min-w-0">
               <div className="text-[14.5px] font-semibold text-card-foreground truncate">
                 {e.name}

@@ -31,7 +31,7 @@ export function PlotStatusSelect({
         value={value}
         onValueChange={(v) => onChange(v as PlotDetailStatus)}
       >
-        <SelectTrigger className="w-full h-[52px] px-[15px] rounded-xl border-[1.5px] border-primary bg-primary/5 text-[15.5px] font-semibold text-primary [&_svg]:text-primary">
+        <SelectTrigger className="w-full data-[size=default]:h-[50px] px-[15px] rounded-xl border-[1.5px] border-primary bg-primary/5 text-[15.5px] font-semibold text-primary [&_svg]:text-primary">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

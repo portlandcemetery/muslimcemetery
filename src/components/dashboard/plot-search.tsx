@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 export function PlotSearch() {
@@ -8,20 +9,11 @@ export function PlotSearch() {
 
   return (
     <div className="relative mb-[30px] max-w-[620px]">
-      <svg
-        width="19"
-        height="19"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+      <Search
+        size={19}
+        strokeWidth={2}
         className="absolute left-4 top-4 text-muted-foreground/90 pointer-events-none"
-      >
-        <circle cx="11" cy="11" r="8" />
-        <path d="m21 21-4.3-4.3" />
-      </svg>
+      />
       <Input
         value={query}
         onChange={(e) => setQuery(e.target.value)}

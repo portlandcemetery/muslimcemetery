@@ -68,8 +68,15 @@ export function SecuritySettings() {
         title="Session timeout"
         desc="Automatically sign out inactive operators."
         control={
-          <Select defaultValue="30m">
-            <SelectTrigger className="h-11 rounded-[10px] bg-card text-[14.5px] text-card-foreground">
+          <Select
+            defaultValue="30m"
+            items={[
+              { value: "30m", label: "After 30 minutes" },
+              { value: "1h", label: "After 1 hour" },
+              { value: "4h", label: "After 4 hours" },
+            ]}
+          >
+            <SelectTrigger className="data-[size=default]:h-11 rounded-[10px] bg-card text-[14.5px] text-card-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

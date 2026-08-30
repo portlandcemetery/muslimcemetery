@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
@@ -16,18 +17,7 @@ export function PlotFooter({
     <div className="sticky bottom-0 bg-background/90 backdrop-blur-lg border-t border-border py-4 px-5 sm:px-8 lg:px-[44px] flex flex-wrap items-center justify-end gap-[14px]">
       {saved && (
         <div className="mr-auto flex items-center gap-[9px] text-primary text-[14.5px] font-semibold">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M20 6 9 17l-5-5" />
-          </svg>
+          <Check size={18} strokeWidth={2} />
           Changes saved and recorded to the audit log.
         </div>
       )}

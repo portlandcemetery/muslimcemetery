@@ -48,7 +48,7 @@ export function GardenHeader({
           >
             <SelectTrigger
               aria-label="Change garden"
-              className="h-11 px-4 rounded-[11px] bg-card border-input text-[14.5px] font-semibold text-card-foreground"
+              className="data-[size=default]:h-[50px] px-4 rounded-[11px] bg-card border-input text-[14.5px] font-semibold text-card-foreground"
             >
               <SelectValue />
             </SelectTrigger>

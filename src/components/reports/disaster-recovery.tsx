@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Check as CheckIcon, Download, History } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -25,22 +26,8 @@ const FORMATS = [
   { key: "pdf", title: "PDF summary book", desc: "Printable bound register of all records" },
 ];
 
-function IconRefresh() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
-      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-      <path d="M3 3v5h5" />
-      <path d="M12 7v5l4 2" />
-    </svg>
-  );
-}
-
 function Check({ className }: { className?: string }) {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M20 6 9 17l-5-5" />
-    </svg>
-  );
+  return <CheckIcon size={18} strokeWidth={2.2} className={className} />;
 }
 
 export function DisasterRecovery() {
@@ -53,7 +40,7 @@ export function DisasterRecovery() {
       {/* banner */}
       <div className="bg-primary py-[22px] px-[30px] flex items-center gap-[14px]">
         <div className="w-11 h-11 rounded-xl bg-accent/20 flex items-center justify-center flex-none">
-          <IconRefresh />
+          <History size={22} strokeWidth={2} className="text-accent" />
         </div>
         <div>
           <div className="font-extrabold text-[21px] text-primary-foreground">
@@ -129,11 +116,7 @@ export function DisasterRecovery() {
             onClick={() => setDownloaded(true)}
             className="w-full p-[15px] bg-primary text-primary-foreground text-[15.5px] font-bold rounded-xl cursor-pointer flex items-center justify-center gap-[10px] transition-colors hover:bg-primary/90"
           >
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <path d="M7 10l5 5 5-5" />
-              <path d="M12 15V3" />
-            </svg>
+            <Download size={19} strokeWidth={2} />
             Download Full Backup
           </button>
 
@@ -165,8 +148,15 @@ export function DisasterRecovery() {
           </div>
         </div>
         <div className="flex items-center gap-[10px]">
-          <Select defaultValue="friday">
-            <SelectTrigger className="h-11 rounded-[10px] bg-card text-[14.5px] text-card-foreground">
+          <Select
+            defaultValue="friday"
+            items={[
+              { value: "friday", label: "Every Friday" },
+              { value: "sunday", label: "Every Sunday" },
+              { value: "monday", label: "Every Monday" },
+            ]}
+          >
+            <SelectTrigger className="data-[size=default]:h-11 rounded-[10px] bg-card text-[14.5px] text-card-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -175,8 +165,15 @@ export function DisasterRecovery() {
               <SelectItem value="monday">Every Monday</SelectItem>
             </SelectContent>
           </Select>
-          <Select defaultValue="2am">
-            <SelectTrigger className="h-11 rounded-[10px] bg-card text-[14.5px] text-card-foreground">
+          <Select
+            defaultValue="2am"
+            items={[
+              { value: "2am", label: "02:00 AM" },
+              { value: "6am", label: "06:00 AM" },
+              { value: "11pm", label: "11:00 PM" },
+            ]}
+          >
+            <SelectTrigger className="data-[size=default]:h-11 rounded-[10px] bg-card text-[14.5px] text-card-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
