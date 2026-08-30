@@ -85,6 +85,11 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
 
+  const isActive = (href: string) =>
+    pathname === href ||
+    pathname.startsWith(`${href}/`) ||
+    (href === "/gardens" && pathname.startsWith("/plots"));
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border">
       <SidebarHeader className="p-[22px] border-b border-sidebar-border flex-row items-center gap-3">
@@ -105,7 +110,7 @@ export function AppSidebar() {
           {NAV.map((item) => (
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
-                isActive={pathname === item.href}
+                isActive={isActive(item.href)}
                 onClick={() => setOpenMobile(false)}
                 render={<Link href={item.href} />}
                 className="h-auto py-3 px-[15px] gap-[13px] rounded-[11px] text-[15.5px] font-medium text-sidebar-foreground/85 hover:bg-secondary hover:text-foreground data-active:bg-primary/10 data-active:text-primary data-active:font-semibold"

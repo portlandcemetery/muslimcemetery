@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { COLS, GARDEN_ROWS } from "./garden-data";
+import { COLS, type Row } from "./garden-data";
 import { PlotCell } from "./plot-cell";
 import { ZoomControls } from "./zoom-controls";
 import { MapHint } from "./map-hint";
@@ -9,7 +9,7 @@ import { MapHint } from "./map-hint";
 const MIN_SCALE = 0.35;
 const MAX_SCALE = 3;
 
-export function GardenMap() {
+export function GardenMap({ rows }: { rows: Row[] }) {
   const vpRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const zoomRef = useRef<HTMLSpanElement>(null);
@@ -140,7 +140,7 @@ export function GardenMap() {
             </div>
           ))}
         </div>
-        {GARDEN_ROWS.map((row) => (
+        {rows.map((row) => (
           <div key={row.letter} className="flex gap-4 items-stretch mb-4">
             <div className="w-[34px] flex-none flex items-center justify-center font-extrabold text-lg text-primary">
               {row.letter}
