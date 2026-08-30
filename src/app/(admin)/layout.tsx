@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/dashboard/app-sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 
 export default function AdminLayout({
   children,
