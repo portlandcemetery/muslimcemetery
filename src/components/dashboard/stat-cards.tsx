@@ -23,7 +23,7 @@ export function StatCards() {
               {s.label}
             </span>
           </div>
-          <div className={`text-[40px] font-extrabold tracking-[-0.02em] ${s.color}`}>
+          <div className={`text-[30px] sm:text-[40px] font-extrabold tracking-[-0.02em] ${s.color}`}>
             {s.value}
           </div>
         </Card>

@@ -17,11 +17,11 @@ export function SettingsSection({
   className,
 }: SettingsSectionProps) {
   return (
-    <Card className="border-border rounded-[18px] px-8 py-[30px] gap-0">
+    <Card className="border-border rounded-[18px] px-5 sm:px-8 py-[30px] gap-0">
       <div
         className={
           action
-            ? "flex items-center justify-between gap-4 mb-[22px]"
+            ? "flex flex-wrap items-center justify-between gap-4 mb-[22px]"
             : description
               ? "mb-[22px]"
               : "mb-[22px]"

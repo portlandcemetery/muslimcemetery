@@ -17,17 +17,17 @@ export function PlotDetailForm({ plotId }: { plotId: string }) {
   const [saved, setSaved] = useState(false);
 
   return (
-    <div className="flex min-h-svh flex-col">
-      <div className="flex-1 px-[44px] pt-8 pb-10">
+    <div className="flex min-h-full flex-col">
+      <div className="flex-1 px-5 sm:px-8 lg:px-[44px] pt-6 sm:pt-8 pb-10">
         <PlotHeader plotId={plotId} status={status} />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] bg-card border border-border rounded-[20px] overflow-hidden">
-          <div className="py-[34px] px-[38px] lg:border-r border-muted">
+          <div className="py-[34px] px-5 sm:px-[38px] lg:border-r border-muted">
             <DeceasedInfo />
             <ReservationPurchaser />
           </div>
 
-          <div className="p-[34px]">
+          <div className="py-[34px] px-5 sm:px-[34px]">
             <SectionHeading title="Plot Status & Payment" />
             <PlotStatusSelect
               value={status}

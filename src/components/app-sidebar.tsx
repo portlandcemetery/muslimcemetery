@@ -11,6 +11,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 type NavItem = { href: string; label: string; icon: ReactNode };
@@ -82,9 +83,10 @@ function NavIcon({ children }: { children: ReactNode }) {
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { setOpenMobile } = useSidebar();
 
   return (
-    <Sidebar collapsible="none" className="h-svh border-r border-sidebar-border">
+    <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border">
       <SidebarHeader className="p-[22px] border-b border-sidebar-border flex-row items-center gap-3">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/assets/icp-mark.png" alt="" className="h-[38px] w-auto block" />
@@ -104,6 +106,7 @@ export function AppSidebar() {
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
                 isActive={pathname === item.href}
+                onClick={() => setOpenMobile(false)}
                 render={<Link href={item.href} />}
                 className="h-auto py-3 px-[15px] gap-[13px] rounded-[11px] text-[15.5px] font-medium text-sidebar-foreground/85 hover:bg-secondary hover:text-foreground data-active:bg-primary/10 data-active:text-primary data-active:font-semibold"
               >
@@ -119,6 +122,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
+              onClick={() => setOpenMobile(false)}
               render={<Link href="/" />}
               className="h-auto py-3 px-[15px] gap-[13px] rounded-[11px] text-[15.5px] font-medium text-destructive hover:bg-destructive/10 hover:text-destructive"
             >

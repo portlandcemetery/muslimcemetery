@@ -27,11 +27,13 @@ export function PlotHeader({
         <span className="text-foreground font-semibold">Plot {plotId}</span>
       </div>
       <div className="flex items-center gap-[18px] flex-wrap mb-[26px]">
-        <div className="flex items-baseline gap-3">
-          <h1 className="font-extrabold text-[32px] tracking-[-0.02em]">
+        <div className="flex flex-wrap items-baseline gap-x-3">
+          <h1 className="font-extrabold text-[24px] sm:text-[32px] tracking-[-0.02em]">
             Plot {plotId} · Garden A – Al-Firdaus
           </h1>
-          <span className="font-arabic text-[26px] text-primary">الفردوس</span>
+          <span className="font-arabic text-[22px] sm:text-[26px] text-primary">
+            الفردوس
+          </span>
         </div>
         <span
           className={`inline-flex items-center gap-2 py-2 px-4 rounded-full text-sm font-bold border ${meta.badgeClass}`}

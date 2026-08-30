@@ -6,7 +6,7 @@ import { RecentActivity } from "@/components/dashboard/recent-activity";
 
 export default function DashboardPage() {
   return (
-    <div className="px-[44px] pt-[38px] pb-[56px]">
+    <div className="px-5 sm:px-8 lg:px-[44px] pt-6 sm:pt-[38px] pb-[56px]">
       <DashboardHeader />
       <PlotSearch />
       <StatCards />

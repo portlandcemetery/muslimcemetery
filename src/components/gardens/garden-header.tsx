@@ -4,7 +4,7 @@ import { LEGEND } from "./garden-data";
 
 export function GardenHeader() {
   return (
-    <div className="flex-none px-10 pt-7 pb-5 border-b border-border">
+    <div className="flex-none px-5 sm:px-8 lg:px-10 pt-5 sm:pt-7 pb-5 border-b border-border">
       <div className="text-sm text-muted-foreground/90 mb-2">
         <Link href="/dashboard" className="hover:text-primary">
           Dashboard
@@ -19,11 +19,13 @@ export function GardenHeader() {
         </span>
       </div>
       <div className="flex items-end justify-between gap-6 flex-wrap">
-        <div className="flex items-baseline gap-[14px]">
-          <h1 className="font-extrabold text-[34px] tracking-[-0.02em]">
+        <div className="flex flex-wrap items-baseline gap-x-[14px]">
+          <h1 className="font-extrabold text-[26px] sm:text-[34px] tracking-[-0.02em]">
             Garden A – Al-Firdaus
           </h1>
-          <span className="font-arabic text-[30px] text-primary">الفردوس</span>
+          <span className="font-arabic text-[24px] sm:text-[30px] text-primary">
+            الفردوس
+          </span>
         </div>
         <Card className="flex-row flex-wrap items-center gap-x-[22px] gap-y-4 border-border rounded-[14px] py-[11px] px-[18px]">
           {LEGEND.map((l) => (

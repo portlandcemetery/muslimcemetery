@@ -32,7 +32,7 @@ export function TeamMembers() {
       {TEAM.map((m) => (
         <div
           key={m.email}
-          className="flex items-center gap-[14px] py-[14px] border-t border-border"
+          className="flex flex-wrap items-center gap-x-[14px] gap-y-1 py-[14px] border-t border-border"
         >
           <Avatar className="size-[42px]">
             <AvatarFallback
@@ -48,7 +48,7 @@ export function TeamMembers() {
           <span className="py-[5px] px-3 rounded-full bg-primary/10 text-primary text-[12.5px] font-bold flex-none">
             {m.role}
           </span>
-          <span className="text-[13px] text-muted-foreground/90 flex-none w-[150px] text-right">
+          <span className="text-[13px] text-muted-foreground/90 flex-none w-full pl-[56px] lg:pl-0 lg:w-[150px] lg:text-right">
             Last login {m.lastLogin}
           </span>
         </div>

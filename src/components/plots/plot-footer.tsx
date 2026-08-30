@@ -13,7 +13,7 @@ export function PlotFooter({
   onSave: () => void;
 }) {
   return (
-    <div className="sticky bottom-0 bg-background/90 backdrop-blur-lg border-t border-border py-4 px-[44px] flex items-center justify-end gap-[14px]">
+    <div className="sticky bottom-0 bg-background/90 backdrop-blur-lg border-t border-border py-4 px-5 sm:px-8 lg:px-[44px] flex flex-wrap items-center justify-end gap-[14px]">
       {saved && (
         <div className="mr-auto flex items-center gap-[9px] text-primary text-[14.5px] font-semibold">
           <svg

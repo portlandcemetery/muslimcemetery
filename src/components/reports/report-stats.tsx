@@ -17,7 +17,7 @@ export function ReportStats() {
           <div className="text-[12.5px] font-bold tracking-[0.08em] uppercase text-muted-foreground/90 mb-3">
             {s.label}
           </div>
-          <div className={`text-[32px] font-extrabold tracking-[-0.02em] ${s.color}`}>
+          <div className={`text-[26px] sm:text-[32px] font-extrabold tracking-[-0.02em] ${s.color}`}>
             {s.value}
           </div>
           <div className="text-[13px] text-muted-foreground/90 mt-1">{s.sub}</div>
