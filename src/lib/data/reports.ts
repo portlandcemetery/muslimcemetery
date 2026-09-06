@@ -57,7 +57,7 @@ export async function getReportStats(): Promise<ReportStats> {
   const nextMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
   const yearStart = `${now.getUTCFullYear()}-01-01`;
 
-  const [gardens, burialsMonth, reservedIds, outstandingIds, payments] =
+  const [gardens, burialsMonth, reservedPlots, paidByPlot, payments] =
     await Promise.all([
       getGardenCounts(),
       supabase
@@ -65,16 +65,10 @@ export async function getReportStats(): Promise<ReportStats> {
         .select("id", { count: "exact", head: true })
         .gte("burial_date", isoDate(monthStart))
         .lt("burial_date", isoDate(nextMonthStart)),
-      fetchAll<{ id: string }>((from, to) =>
-        supabase.from("plots").select("id").in("status", RESERVED).range(from, to)
+      fetchAll<{ id: string; price: number }>((from, to) =>
+        supabase.from("plots").select("id, price").in("status", RESERVED).range(from, to)
       ),
-      fetchAll<{ plot_id: string }>((from, to) =>
-        supabase
-          .from("plot_payment_summary")
-          .select("plot_id")
-          .gt("outstanding", 0)
-          .range(from, to)
-      ),
+      fetchPaidByPlot(),
       fetchAll<{ amount: number }>((from, to) =>
         supabase
           .from("payments")
@@ -87,8 +81,9 @@ export async function getReportStats(): Promise<ReportStats> {
   if (burialsMonth.error) throw new Error(burialsMonth.error.message);
 
   const stats = sumStats(gardens);
-  const outstanding = new Set(outstandingIds.map((r) => r.plot_id));
-  const pendingPayment = reservedIds.filter((r) => outstanding.has(r.id)).length;
+  const pendingPayment = reservedPlots.filter(
+    (p) => Number(p.price ?? 0) - (paidByPlot.get(p.id) ?? 0) > 0
+  ).length;
   const paymentsYtd = payments.reduce((sum, p) => sum + Number(p.amount), 0);
 
   return {
@@ -102,17 +97,18 @@ export async function getReportStats(): Promise<ReportStats> {
   };
 }
 
-type SummaryRow = { plot_id: string; total_paid: number; outstanding: number };
-
-async function fetchPaymentSummaries(): Promise<Map<string, SummaryRow>> {
+// Total paid per plot, summed from the payments ledger (source of truth —
+// outstanding is always derived as price − paid at the call site)
+async function fetchPaidByPlot(): Promise<Map<string, number>> {
   const supabase = await createClient();
-  const rows = await fetchAll<SummaryRow>((from, to) =>
-    supabase
-      .from("plot_payment_summary")
-      .select("plot_id, total_paid, outstanding")
-      .range(from, to)
+  const rows = await fetchAll<{ plot_id: string; amount: number }>((from, to) =>
+    supabase.from("payments").select("plot_id, amount").range(from, to)
   );
-  return new Map(rows.map((r) => [r.plot_id, r]));
+  const paid = new Map<string, number>();
+  for (const r of rows) {
+    paid.set(r.plot_id, (paid.get(r.plot_id) ?? 0) + Number(r.amount));
+  }
+  return paid;
 }
 
 async function fetchGardenNames(): Promise<Map<string, string>> {
@@ -157,7 +153,7 @@ export async function buildReportCsv(
     }
     case "financial": {
       const supabase = await createClient();
-      const [plots, summaries, gardenNames] = await Promise.all([
+      const [plots, paidByPlot, gardenNames] = await Promise.all([
         fetchAll<{
           id: string;
           garden_id: string;
@@ -174,13 +170,12 @@ export async function buildReportCsv(
             .order("ref")
             .range(from, to)
         ),
-        fetchPaymentSummaries(),
+        fetchPaidByPlot(),
         fetchGardenNames(),
       ]);
       const rows: CsvValue[][] = [];
       for (const p of plots) {
-        const s = summaries.get(p.id);
-        const totalPaid = Number(s?.total_paid ?? 0);
+        const totalPaid = paidByPlot.get(p.id) ?? 0;
         const active = p.status !== "available" && p.status !== "unavailable";
         if (!active && totalPaid <= 0) continue;
         rows.push([
@@ -191,7 +186,7 @@ export async function buildReportCsv(
           p.reservation_holder,
           Number(p.price ?? 0),
           totalPaid,
-          Number(s?.outstanding ?? 0),
+          Number(p.price ?? 0) - totalPaid,
         ]);
       }
       const csv = toCsv(
@@ -263,7 +258,7 @@ export async function buildReportCsv(
     }
     case "reservations": {
       const supabase = await createClient();
-      const [plots, summaries, gardenNames] = await Promise.all([
+      const [plots, paidByPlot, gardenNames] = await Promise.all([
         fetchAll<{
           id: string;
           garden_id: string;
@@ -286,7 +281,7 @@ export async function buildReportCsv(
             .order("ref")
             .range(from, to)
         ),
-        fetchPaymentSummaries(),
+        fetchPaidByPlot(),
         fetchGardenNames(),
       ]);
       const csv = toCsv(
@@ -303,7 +298,7 @@ export async function buildReportCsv(
           "Outstanding",
         ],
         plots.map((p) => {
-          const s = summaries.get(p.id);
+          const totalPaid = paidByPlot.get(p.id) ?? 0;
           return [
             gardenNames.get(p.garden_id) ?? p.garden_id,
             p.ref,
@@ -313,8 +308,8 @@ export async function buildReportCsv(
             p.purchaser_phone,
             p.purchaser_email,
             Number(p.price ?? 0),
-            Number(s?.total_paid ?? 0),
-            Number(s?.outstanding ?? 0),
+            totalPaid,
+            Number(p.price ?? 0) - totalPaid,
           ];
         })
       );

@@ -24,20 +24,19 @@ const RESERVED: PlotStatus[] = ["full", "partial", "unpaid"];
 
 export async function getGardenCounts(): Promise<GardenCounts[]> {
   const supabase = await createClient();
-  const [{ data: gardens, error: gErr }, { data: alloc, error: aErr }] =
+  // Staff-only callers (dashboard, reports) — direct plots read under staff RLS
+  const [{ data: gardens, error: gErr }, { data: plots, error: pErr }] =
     await Promise.all([
       supabase.from("gardens").select("id, name, arabic_name").order("sort_order"),
-      supabase.from("garden_allocation").select("garden_id, status, cnt"),
+      supabase.from("plots").select("garden_id, status"),
     ]);
   if (gErr) throw new Error(gErr.message);
-  if (aErr) throw new Error(aErr.message);
+  if (pErr) throw new Error(pErr.message);
 
   return (gardens ?? []).map((g) => {
-    const rows = (alloc ?? []).filter((a) => a.garden_id === g.id);
+    const rows = (plots ?? []).filter((p) => p.garden_id === g.id);
     const count = (match: (s: PlotStatus) => boolean) =>
-      rows
-        .filter((r) => match(r.status as PlotStatus))
-        .reduce((sum, r) => sum + Number(r.cnt), 0);
+      rows.filter((r) => match(r.status as PlotStatus)).length;
     return {
       id: g.id,
       name: g.name,

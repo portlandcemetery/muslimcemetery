@@ -22,12 +22,11 @@ export async function getMapRows(
   minePlotIds?: Set<string>
 ): Promise<Row[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("map_plots")
-    .select("id, garden_id, col_letter, row_letter, position, ref, status, deceased_name")
-    .eq("garden_id", gardenId);
+  const { data, error } = await supabase.rpc("get_map_plots", {
+    p_garden_id: gardenId,
+  });
   if (error) throw new Error(`Failed to load plots: ${error.message}`);
-  return buildRowsFromPlots(data as MapPlot[], minePlotIds);
+  return buildRowsFromPlots((data ?? []) as MapPlot[], minePlotIds);
 }
 
 // Plot ids mapped to the signed-in user (RLS limits rows to their own mappings)

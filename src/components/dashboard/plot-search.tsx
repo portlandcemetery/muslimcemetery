@@ -18,12 +18,11 @@ export function PlotSearch() {
     const q = query.trim();
     if (q.length < 2) return;
     const timer = setTimeout(async () => {
-      const { data } = await supabase.current
-        .from("map_plots")
-        .select("*")
-        .or(`deceased_name.ilike.%${q}%,ref.ilike.%${q}%`)
-        .limit(8);
-      setResults((data as MapPlot[]) ?? []);
+      const { data } = await supabase.current.rpc("search_map_plots", {
+        p_query: q,
+        p_limit: 8,
+      });
+      setResults(((data ?? []) as MapPlot[]));
       setOpen(true);
     }, 250);
     return () => clearTimeout(timer);
