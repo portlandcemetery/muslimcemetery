@@ -1,7 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Eye } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { COLS, type Row } from "./garden-data";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { PlotCell } from "./plot-cell";
 import { ZoomControls } from "./zoom-controls";
 import { MapHint } from "./map-hint";
@@ -9,11 +12,22 @@ import { MapHint } from "./map-hint";
 const MIN_SCALE = 0.35;
 const MAX_SCALE = 3;
 
-export function GardenMap({ rows }: { rows: Row[] }) {
+export function GardenMap({
+  rows,
+  gardenId,
+  isAdmin,
+  canFocusMine = false,
+}: {
+  rows: Row[];
+  gardenId: string;
+  isAdmin: boolean;
+  canFocusMine?: boolean;
+}) {
+  const [focusMine, setFocusMine] = useState(false);
   const vpRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const zoomRef = useRef<HTMLSpanElement>(null);
-  const view = useRef({ scale: 0.85, tx: 30, ty: 16 });
+  const view = useRef({ scale: 1.2, tx: 30, ty: 16 });
 
   const apply = useCallback(() => {
     const { scale, tx, ty } = view.current;
@@ -51,7 +65,7 @@ export function GardenMap({ rows }: { rows: Row[] }) {
     [zoomAt]
   );
   const reset = useCallback(() => {
-    view.current = { scale: 0.85, tx: 30, ty: 16 };
+    view.current = { scale: 1.2, tx: 30, ty: 16 };
     apply();
   }, [apply]);
 
@@ -126,6 +140,7 @@ export function GardenMap({ rows }: { rows: Row[] }) {
       ref={vpRef}
       className="relative flex-1 overflow-hidden cursor-grab touch-none select-none bg-secondary [background-image:radial-gradient(var(--input)_1.4px,transparent_1.4px)] [background-size:26px_26px]"
     >
+      <TooltipProvider delay={0} closeDelay={0}>
       <div
         ref={canvasRef}
         className="absolute top-0 left-0 origin-top-left will-change-transform py-[34px] px-[44px]"
@@ -134,7 +149,7 @@ export function GardenMap({ rows }: { rows: Row[] }) {
           {COLS.map((c) => (
             <div
               key={c}
-              className="w-[158px] flex-none text-center font-extrabold text-lg text-primary tracking-[0.04em]"
+              className="w-[240px] flex-none text-center font-extrabold text-lg text-primary tracking-[0.04em]"
             >
               {c}
             </div>
@@ -146,12 +161,31 @@ export function GardenMap({ rows }: { rows: Row[] }) {
               {row.letter}
             </div>
             {row.cells.map((cell) => (
-              <PlotCell key={cell.coord} cell={cell} />
+              <PlotCell
+                key={cell.coord}
+                cell={cell}
+                gardenId={gardenId}
+                isAdmin={isAdmin}
+                dimOthers={focusMine}
+              />
             ))}
           </div>
         ))}
       </div>
+      </TooltipProvider>
 
+      {canFocusMine && (
+        <Button
+          type="button"
+          variant={focusMine ? "default" : "outline"}
+          data-nodrag
+          onClick={() => setFocusMine((f) => !f)}
+          className="absolute right-5 top-5 h-auto py-[10px] px-4 rounded-full text-[13.5px] font-semibold shadow-[0_10px_24px_-16px_rgba(34,39,31,.6)]"
+        >
+          <Eye size={16} strokeWidth={2} />
+          {focusMine ? "Showing my plots" : "Find my plots"}
+        </Button>
+      )}
       <ZoomControls
         zoomRef={zoomRef}
         onZoomIn={zoomIn}

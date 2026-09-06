@@ -1,12 +1,18 @@
 import Link from "next/link";
-import { STATUS_META, type PlotDetailStatus } from "./plot-status-data";
+import { STATUS_META, type PlotStatus } from "./plot-status-data";
 
 export function PlotHeader({
-  plotId,
+  plotRef,
+  gardenId,
+  gardenName,
+  gardenArabic,
   status,
 }: {
-  plotId: string;
-  status: PlotDetailStatus;
+  plotRef: string;
+  gardenId: string;
+  gardenName: string;
+  gardenArabic: string;
+  status: PlotStatus;
 }) {
   const meta = STATUS_META[status];
   return (
@@ -20,19 +26,19 @@ export function PlotHeader({
           Gardens
         </Link>
         <span className="mx-2">/</span>
-        <Link href="/gardens" className="hover:text-primary">
-          Garden A
+        <Link href={`/gardens?garden=${gardenId}`} className="hover:text-primary">
+          {gardenName}
         </Link>
         <span className="mx-2">/</span>
-        <span className="text-foreground font-semibold">Plot {plotId}</span>
+        <span className="text-foreground font-semibold">Plot {plotRef}</span>
       </div>
       <div className="flex items-center gap-[18px] flex-wrap mb-[26px]">
         <div className="flex flex-wrap items-baseline gap-x-3">
           <h1 className="font-extrabold text-[24px] sm:text-[32px] tracking-[-0.02em]">
-            Plot {plotId} · Garden A – Al-Firdaus
+            Plot {plotRef} · {gardenName}
           </h1>
           <span className="font-arabic text-[22px] sm:text-[26px] text-primary">
-            الفردوس
+            {gardenArabic}
           </span>
         </div>
         <span

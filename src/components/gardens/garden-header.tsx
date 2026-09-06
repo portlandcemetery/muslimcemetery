@@ -9,14 +9,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { GARDENS, LEGEND, type Garden } from "./garden-data";
+import { LEGEND, type GardenInfo } from "./garden-data";
 
 export function GardenHeader({
   garden,
+  gardens,
   onGardenChange,
+  showMine = false,
 }: {
-  garden: Garden;
+  garden: GardenInfo;
+  gardens: GardenInfo[];
   onGardenChange: (id: string) => void;
+  showMine?: boolean;
 }) {
   return (
     <div className="flex-none px-5 sm:px-8 lg:px-10 pt-5 sm:pt-7 pb-5 border-b border-border">
@@ -42,7 +46,7 @@ export function GardenHeader({
             </span>
           </div>
           <Select
-            items={GARDENS.map((g) => ({ value: g.id, label: g.name }))}
+            items={gardens.map((g) => ({ value: g.id, label: g.name }))}
             value={garden.id}
             onValueChange={(v) => v && onGardenChange(v)}
           >
@@ -53,7 +57,7 @@ export function GardenHeader({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {GARDENS.map((g) => (
+              {gardens.map((g) => (
                 <SelectItem key={g.id} value={g.id}>
                   {g.name}
                 </SelectItem>
@@ -71,6 +75,12 @@ export function GardenHeader({
               {l.name}
             </span>
           ))}
+          {showMine && (
+            <span className="flex items-center gap-2 text-[13.5px] text-primary font-semibold">
+              <span className="w-[11px] h-[11px] rounded-[3px] bg-primary/20 ring-1 ring-primary/60" />
+              Your Plot
+            </span>
+          )}
         </Card>
       </div>
     </div>

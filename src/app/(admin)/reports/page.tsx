@@ -2,8 +2,12 @@ import { ReportStats } from "@/components/reports/report-stats";
 import { DisasterRecovery } from "@/components/reports/disaster-recovery";
 import { GenerateReport } from "@/components/reports/generate-report";
 import { RecentExports } from "@/components/reports/recent-exports";
+import { requireRole } from "@/lib/data/auth";
+import { getReportStats } from "@/lib/data/reports";
 
-export default function ReportsPage() {
+export default async function ReportsPage() {
+  await requireRole("admin", "operator");
+  const stats = await getReportStats();
   return (
     <div className="px-5 sm:px-8 lg:px-[44px] pt-6 sm:pt-[38px] pb-[56px]">
       <div className="mb-[30px]">
@@ -15,7 +19,7 @@ export default function ReportsPage() {
         </p>
       </div>
 
-      <ReportStats />
+      <ReportStats stats={stats} />
       <DisasterRecovery />
       <GenerateReport />
       <RecentExports />

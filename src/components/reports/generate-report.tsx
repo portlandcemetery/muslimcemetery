@@ -7,14 +7,15 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import type { ReportType } from "@/lib/data/reports";
 
-type Report = { name: string; desc: string; icon: LucideIcon };
+type Report = { name: string; desc: string; icon: LucideIcon; type: ReportType };
 
 const REPORTS: Report[] = [
-  { name: "Occupancy by Garden", desc: "Plot allocation and availability across every sector.", icon: ChartColumn },
-  { name: "Financial & Payments", desc: "Collected, outstanding, and scheduled installments.", icon: DollarSign },
-  { name: "Burials Register", desc: "Chronological record of all recorded burials.", icon: Sprout },
-  { name: "Reservations", desc: "Active reservations grouped by payment status.", icon: SquareCheckBig },
+  { name: "Occupancy by Garden", desc: "Plot allocation and availability across every sector.", icon: ChartColumn, type: "occupancy" },
+  { name: "Financial & Payments", desc: "Collected, outstanding, and scheduled installments.", icon: DollarSign, type: "financial" },
+  { name: "Burials Register", desc: "Chronological record of all recorded burials.", icon: Sprout, type: "burials" },
+  { name: "Reservations", desc: "Active reservations grouped by payment status.", icon: SquareCheckBig, type: "reservations" },
 ];
 
 const exportBtn =
@@ -41,10 +42,19 @@ export function GenerateReport() {
                 {r.desc}
               </div>
               <div className="flex gap-[10px]">
-                <Button variant="outline" className={exportBtn}>
+                <Button
+                  variant="outline"
+                  className={exportBtn}
+                  render={<a href={`/reports/export?type=${r.type}`} download />}
+                >
                   Export CSV
                 </Button>
-                <Button variant="outline" className={exportBtn}>
+                <Button
+                  variant="outline"
+                  className={exportBtn}
+                  disabled
+                  title="PDF export coming soon"
+                >
                   Export PDF
                 </Button>
               </div>

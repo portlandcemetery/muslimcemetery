@@ -19,8 +19,7 @@ export function PortalSection() {
             Sign in to continue
           </h2>
           <p className="text-[16.5px] text-foreground/75 leading-[1.6]">
-            For authorized operators, administration, and family
-            representatives.
+            For authorized operators and administration.
           </p>
         </div>
 

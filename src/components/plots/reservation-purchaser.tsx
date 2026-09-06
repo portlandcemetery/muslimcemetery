@@ -1,25 +1,49 @@
+import type { PlotRow } from "@/lib/types";
 import { SectionHeading } from "./section-heading";
 import { Field } from "./field";
 
-export function ReservationPurchaser() {
+export function ReservationPurchaser({
+  plot,
+  readOnly,
+}: {
+  plot: PlotRow;
+  readOnly: boolean;
+}) {
   return (
     <>
       <SectionHeading title="Reservation & Purchaser" />
       <div className="mb-[22px]">
         <Field
-          id="holder"
+          id="reservation_holder"
           label="Reservation Holder Name"
-          defaultValue="Hassan Family Trust"
+          defaultValue={plot.reservation_holder ?? ""}
+          readOnly={readOnly}
         />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-[22px]">
-        <Field id="purchaser" label="Purchaser Name" defaultValue="Tariq Hassan" required />
-        <Field id="phone" label="Phone Number" defaultValue="+1 (503) 555-0322" />
-        <Field id="email" label="Email Address" defaultValue="tariq.h@hassanemail.com" />
         <Field
-          id="address"
+          id="purchaser_name"
+          label="Purchaser Name"
+          defaultValue={plot.purchaser_name ?? ""}
+          readOnly={readOnly}
+        />
+        <Field
+          id="purchaser_phone"
+          label="Phone Number"
+          defaultValue={plot.purchaser_phone ?? ""}
+          readOnly={readOnly}
+        />
+        <Field
+          id="purchaser_email"
+          label="Email Address"
+          defaultValue={plot.purchaser_email ?? ""}
+          readOnly={readOnly}
+        />
+        <Field
+          id="purchaser_address"
           label="Address"
-          defaultValue="442 Crescent Ave, Portland, OR 97204"
+          defaultValue={plot.purchaser_address ?? ""}
+          readOnly={readOnly}
         />
       </div>
     </>

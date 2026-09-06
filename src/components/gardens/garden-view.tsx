@@ -1,24 +1,44 @@
 "use client";
 
-import { useMemo } from "react";
-import { parseAsStringLiteral, useQueryState } from "nuqs";
-import { GARDENS, buildRows } from "./garden-data";
+import { parseAsString, useQueryState } from "nuqs";
+import type { UserRole } from "@/lib/types";
+import type { GardenInfo, Row } from "./garden-data";
 import { GardenHeader } from "./garden-header";
 import { GardenMap } from "./garden-map";
 
-const gardenParser = parseAsStringLiteral(
-  GARDENS.map((g) => g.id)
-).withDefault(GARDENS[0].id);
-
-export function GardenView() {
-  const [gardenId, setGardenId] = useQueryState("garden", gardenParser);
-  const garden = GARDENS.find((g) => g.id === gardenId) ?? GARDENS[0];
-  const rows = useMemo(() => buildRows(garden.seed), [garden]);
+export function GardenView({
+  gardens,
+  gardenId,
+  rows,
+  role,
+}: {
+  gardens: GardenInfo[];
+  gardenId: string;
+  rows: Row[];
+  role: UserRole;
+}) {
+  const [, setGardenId] = useQueryState(
+    "garden",
+    // shallow:false re-runs the server page so the map data refetches
+    parseAsString.withDefault(gardens[0]?.id ?? "a").withOptions({ shallow: false })
+  );
+  const garden = gardens.find((g) => g.id === gardenId) ?? gardens[0];
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <GardenHeader garden={garden} onGardenChange={setGardenId} />
-      <GardenMap key={garden.id} rows={rows} />
+      <GardenHeader
+        garden={garden}
+        gardens={gardens}
+        onGardenChange={setGardenId}
+        showMine={role === "viewer"}
+      />
+      <GardenMap
+        key={garden.id}
+        rows={rows}
+        gardenId={garden.id}
+        isAdmin={role === "admin"}
+        canFocusMine={role === "viewer"}
+      />
     </div>
   );
 }

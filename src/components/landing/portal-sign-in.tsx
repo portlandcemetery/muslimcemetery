@@ -1,38 +1,33 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useActionState, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { signIn, type SignInState } from "@/lib/actions/auth";
 
 export function PortalSignIn() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
-  const [signedIn, setSignedIn] = useState(false);
-
-  function signIn() {
-    setSignedIn(true);
-    router.push("/dashboard");
-  }
+  const [state, formAction, pending] = useActionState<SignInState, FormData>(
+    signIn,
+    { error: null }
+  );
 
   const fieldCls = "h-[54px] text-base bg-card rounded-xl";
 
   return (
     <Card className="w-full max-w-[460px] p-0 gap-0 border-border border-t-[3px] border-t-primary rounded-[5px_5px_18px_18px] shadow-[0_26px_60px_-34px_rgba(34,39,31,.5)]">
-      <div className="p-9">
+      <form action={formAction} className="p-9">
         <Label htmlFor="portal-email" className="text-sm font-semibold text-card-foreground mb-[9px]">
           Email address
         </Label>
         <Input
           id="portal-email"
+          name="email"
           type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          required
           placeholder="operator@icportland.org"
           className={`${fieldCls} mb-[22px]`}
         />
@@ -43,9 +38,9 @@ export function PortalSignIn() {
         <div className="relative mb-[26px]">
           <Input
             id="portal-password"
+            name="password"
             type={showPw ? "text" : "password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            required
             placeholder="••••••••••••"
             className={`${fieldCls} pr-[54px]`}
           />
@@ -72,15 +67,15 @@ export function PortalSignIn() {
         </div>
 
         <Button
-          type="button"
-          onClick={signIn}
+          type="submit"
+          disabled={pending}
           className="w-full h-14 text-[16.5px] font-bold rounded-[13px]"
         >
-          Sign In to Management
+          {pending ? "Signing in…" : "Sign In to Management"}
         </Button>
 
-        {signedIn && (
-          <Alert className="mt-[18px] bg-primary/10 border-primary/25 text-primary">
+        {state.error && (
+          <Alert className="mt-[18px] bg-destructive/10 border-destructive/25 text-destructive">
             <svg
               width="18"
               height="18"
@@ -91,10 +86,12 @@ export function PortalSignIn() {
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <path d="M20 6 9 17l-5-5" />
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 8v4" />
+              <path d="M12 16h.01" />
             </svg>
-            <AlertDescription className="text-primary">
-              Credentials accepted. Opening the management dashboard…
+            <AlertDescription className="text-destructive">
+              {state.error}
             </AlertDescription>
           </Alert>
         )}
@@ -122,7 +119,7 @@ export function PortalSignIn() {
             </a>
           </span>
         </div>
-      </div>
+      </form>
     </Card>
   );
 }

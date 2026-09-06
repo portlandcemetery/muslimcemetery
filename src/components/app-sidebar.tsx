@@ -20,19 +20,22 @@ import {
   SidebarMenuButton,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { signOut } from "@/lib/actions/auth";
+import type { UserRole } from "@/lib/types";
 
-type NavItem = { href: string; label: string; icon: LucideIcon };
+type NavItem = { href: string; label: string; icon: LucideIcon; roles: UserRole[] };
 
 const NAV: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/gardens", label: "Gardens", icon: Sprout },
-  { href: "/reports", label: "Reports", icon: FileText },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "operator"] },
+  { href: "/gardens", label: "Gardens", icon: Sprout, roles: ["admin", "operator", "viewer"] },
+  { href: "/reports", label: "Reports", icon: FileText, roles: ["admin", "operator"] },
+  { href: "/settings", label: "Settings", icon: Settings, roles: ["admin"] },
 ];
 
-export function AppSidebar() {
+export function AppSidebar({ role }: { role: UserRole }) {
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
+  const nav = NAV.filter((item) => item.roles.includes(role));
 
   const isActive = (href: string) =>
     pathname === href ||
@@ -62,7 +65,7 @@ export function AppSidebar() {
 
       <SidebarContent className="p-[14px]">
         <SidebarMenu className="gap-1">
-          {NAV.map((item) => (
+          {nav.map((item) => (
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
                 isActive={isActive(item.href)}
@@ -82,8 +85,10 @@ export function AppSidebar() {
         <SidebarMenu className="gap-1">
           <SidebarMenuItem>
             <SidebarMenuButton
-              onClick={() => setOpenMobile(false)}
-              render={<Link href="/" />}
+              onClick={() => {
+                setOpenMobile(false);
+                void signOut();
+              }}
               className="h-auto py-3 px-[15px] gap-[13px] rounded-[11px] text-[15.5px] font-medium text-destructive hover:bg-destructive/10 hover:text-destructive [&_svg]:size-[19px]"
             >
               <LogOut strokeWidth={2} />

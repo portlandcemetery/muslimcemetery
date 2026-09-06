@@ -1,7 +1,9 @@
-export type PlotDetailStatus = "available" | "full" | "partial" | "none" | "buried";
+import type { PlotStatus } from "@/lib/types";
+
+export type { PlotStatus };
 
 export const STATUS_META: Record<
-  PlotDetailStatus,
+  PlotStatus,
   { badge: string; option: string; badgeClass: string }
 > = {
   available: {
@@ -19,7 +21,7 @@ export const STATUS_META: Record<
     option: "Reserved with partial payment",
     badgeClass: "text-accent border-accent bg-accent/10",
   },
-  none: {
+  unpaid: {
     badge: "Reserved (Unpaid)",
     option: "Reserved without payment",
     badgeClass: "text-orange-800 border-orange-800 bg-orange-800/10",
@@ -29,12 +31,18 @@ export const STATUS_META: Record<
     option: "Buried / Occupied",
     badgeClass: "text-chart-3 border-chart-3 bg-chart-3/10",
   },
+  unavailable: {
+    badge: "Unavailable",
+    option: "Unavailable (blocked)",
+    badgeClass: "text-zinc-600 border-zinc-500 bg-zinc-500/10",
+  },
 };
 
-export const STATUS_ORDER: PlotDetailStatus[] = [
+export const STATUS_ORDER: PlotStatus[] = [
   "available",
   "full",
   "partial",
-  "none",
+  "unpaid",
   "buried",
+  "unavailable",
 ];

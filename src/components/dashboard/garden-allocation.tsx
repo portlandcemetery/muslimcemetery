@@ -1,24 +1,10 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Diamond } from "@/components/diamond";
+import type { GardenCounts } from "@/lib/data/dashboard";
 
-type Garden = {
-  id: string;
-  name: string;
-  arabic: string;
-  total: number;
-  occupied: number;
-  reserved: number;
-  available: number;
-};
-
-const RAW: Omit<Garden, never>[] = [
-  { id: "a", name: "Garden A – Al-Firdaus", arabic: "الفردوس", total: 800, occupied: 420, reserved: 110, available: 270 },
-  { id: "b", name: "Garden B – Al-Kawthar", arabic: "الكوثر", total: 628, occupied: 280, reserved: 84, available: 264 },
-  { id: "c", name: "Garden C – Ar-Rawdah", arabic: "الروضة", total: 600, occupied: 147, reserved: 40, available: 413 },
-];
-
-const pct = (n: number, total: number) => `${((n / total) * 100).toFixed(2)}%`;
+const pct = (n: number, total: number) =>
+  total > 0 ? `${((n / total) * 100).toFixed(2)}%` : "0%";
 
 const LEGEND = [
   { key: "occupied", label: "Occupied", dot: "bg-chart-3" },
@@ -26,7 +12,7 @@ const LEGEND = [
   { key: "available", label: "Available", dot: "bg-chart-1" },
 ] as const;
 
-export function GardenAllocation() {
+export function GardenAllocation({ gardens }: { gardens: GardenCounts[] }) {
   return (
     <div>
       <div className="flex items-center gap-[14px] mb-5">
@@ -37,9 +23,9 @@ export function GardenAllocation() {
       </div>
 
       <div className="flex flex-col gap-4">
-        {RAW.map((g) => (
+        {gardens.map((g) => (
           <Link
-            key={g.name}
+            key={g.id}
             href={`/gardens?garden=${g.id}`}
             className="block"
           >
@@ -74,6 +60,12 @@ export function GardenAllocation() {
                     {l.label} {g[l.key]}
                   </span>
                 ))}
+                {g.unavailable > 0 && (
+                  <span className="flex items-center gap-2 text-sm text-foreground/85">
+                    <span className="w-[9px] h-[9px] rounded-[2px] bg-zinc-400" />
+                    Unavailable {g.unavailable}
+                  </span>
+                )}
               </div>
             </Card>
           </Link>

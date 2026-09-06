@@ -1,18 +1,19 @@
 import { Card } from "@/components/ui/card";
+import type { DashboardStats } from "@/lib/data/dashboard";
 
-type Stat = { label: string; value: string; color: string };
+const fmt = (n: number) => n.toLocaleString("en-US");
 
-const STATS: Stat[] = [
-  { label: "Total Plots", value: "2,028", color: "text-foreground" },
-  { label: "Occupied", value: "847", color: "text-chart-3" },
-  { label: "Reserved", value: "234", color: "text-chart-4" },
-  { label: "Available", value: "947", color: "text-primary" },
-];
+export function StatCards({ stats }: { stats: DashboardStats }) {
+  const cards = [
+    { label: "Total Plots", value: fmt(stats.total), color: "text-foreground" },
+    { label: "Occupied", value: fmt(stats.occupied), color: "text-chart-3" },
+    { label: "Reserved", value: fmt(stats.reserved), color: "text-chart-4" },
+    { label: "Available", value: fmt(stats.available), color: "text-primary" },
+  ];
 
-export function StatCards() {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-[18px] mb-10">
-      {STATS.map((s) => (
+      {cards.map((s) => (
         <Card
           key={s.label}
           className="border-border rounded-2xl py-[22px] px-6 gap-0"

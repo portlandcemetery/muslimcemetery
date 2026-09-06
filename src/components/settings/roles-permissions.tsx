@@ -22,7 +22,6 @@ type Role = {
 const ROLES: Role[] = [
   { name: "Administrator", desc: "Full control, including settings and roles", view: true, edit: true, burial: true, export: true, admin: true },
   { name: "Operator", desc: "Manage plots, reservations, and burials", view: true, edit: true, burial: true, export: true, admin: false },
-  { name: "Family Representative", desc: "View assigned plots and make payments", view: true, edit: false, burial: false, export: false, admin: false },
   { name: "Viewer / Auditor", desc: "Read-only access to records and logs", view: true, edit: false, burial: false, export: false, admin: false },
 ];
 
