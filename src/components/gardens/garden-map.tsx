@@ -93,6 +93,8 @@ export function GardenMap({
       apply();
     };
     const onDown = (e: PointerEvent) => {
+      suppressClick = false; // clear any leftover flag from an off-canvas drag end
+      if (e.button !== 0) return;
       if ((e.target as Element).closest("[data-nodrag]")) return;
       const v = view.current;
       drag = { x: e.clientX, y: e.clientY, tx: v.tx, ty: v.ty, moved: false };

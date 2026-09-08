@@ -44,6 +44,7 @@ export function ConfirmDialog({
         </DialogHeader>
         <div className="mt-4 flex justify-end gap-[10px]">
           <DialogClose
+            disabled={pending}
             render={
               <Button
                 variant="outline"

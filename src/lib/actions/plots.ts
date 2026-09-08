@@ -34,20 +34,31 @@ export async function savePlot(
   if (!STATUSES.includes(status)) {
     return { error: "Invalid plot status.", savedAt: null };
   }
-  if (status === "unavailable" && profile.role !== "admin") {
-    return {
-      error: "Only administrators can mark plots unavailable.",
-      savedAt: null,
-    };
-  }
 
   const priceRaw = String(formData.get("price") ?? "").replace(/[$,]/g, "");
-  const price = priceRaw === "" ? 0 : Number(priceRaw);
-  if (Number.isNaN(price) || price < 0) {
+  const price = priceRaw === "" ? 0 : Math.round(Number(priceRaw) * 100) / 100;
+  if (!Number.isFinite(price) || price < 0 || price > 99_999_999) {
     return { error: "Total plot value must be a valid amount.", savedAt: null };
   }
 
   const supabase = await createClient();
+
+  // Only block the unavailable status when it's actually being changed —
+  // operators must still be able to edit notes on an already-unavailable plot.
+  // (The DB trigger is the hard guard either way.)
+  if (status === "unavailable" && profile.role !== "admin") {
+    const { data: current } = await supabase
+      .from("plots")
+      .select("status")
+      .eq("id", plotId)
+      .maybeSingle();
+    if (current?.status !== "unavailable") {
+      return {
+        error: "Only administrators can mark plots unavailable.",
+        savedAt: null,
+      };
+    }
+  }
   const { error } = await supabase
     .from("plots")
     .update({

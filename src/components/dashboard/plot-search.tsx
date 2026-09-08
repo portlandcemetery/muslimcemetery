@@ -17,15 +17,22 @@ export function PlotSearch() {
   useEffect(() => {
     const q = query.trim();
     if (q.length < 2) return;
+    // ignore flag: a slow in-flight response must not overwrite newer results
+    // or reopen the dropdown after the query was cleared
+    let ignore = false;
     const timer = setTimeout(async () => {
-      const { data } = await supabase.current.rpc("search_map_plots", {
+      const { data, error } = await supabase.current.rpc("search_map_plots", {
         p_query: q,
         p_limit: 8,
       });
+      if (ignore || error) return;
       setResults(((data ?? []) as MapPlot[]));
       setOpen(true);
     }, 250);
-    return () => clearTimeout(timer);
+    return () => {
+      ignore = true;
+      clearTimeout(timer);
+    };
   }, [query]);
 
   return (
@@ -51,7 +58,11 @@ export function PlotSearch() {
         className="h-[52px] pl-[46px] pr-4 text-[15.5px] bg-card rounded-[13px]"
       />
       {open && (
-        <div className="absolute z-20 top-[58px] left-0 right-0 bg-card border border-border rounded-[13px] shadow-lg overflow-hidden">
+        <div
+          // keep the input focused so blur can't unmount the list mid-click
+          onMouseDown={(e) => e.preventDefault()}
+          className="absolute z-20 top-[58px] left-0 right-0 bg-card border border-border rounded-[13px] shadow-lg overflow-hidden"
+        >
           {results.length === 0 ? (
             <div className="py-3 px-4 text-[14px] text-muted-foreground">
               No plots found.

@@ -11,7 +11,11 @@ export default async function SettingsPage() {
   const profile = await requireRole("admin");
 
   const supabase = await createClient();
-  const [{ data: members }, { data: mappings }, activity] = await Promise.all([
+  const [
+    { data: members, error: membersError },
+    { data: mappings, error: mappingsError },
+    activity,
+  ] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, email, full_name, role, created_at")
@@ -21,6 +25,10 @@ export default async function SettingsPage() {
       .select("profile_id, plots(garden_id, ref)"),
     getRecentActivity(10),
   ]);
+  // A failed read must not render an empty member list (editing against
+  // empty prefills would wipe a viewer's plot links)
+  if (membersError) throw new Error(membersError.message);
+  if (mappingsError) throw new Error(mappingsError.message);
 
   // profile_id -> "a-AA1, a-AA2" for prefilling the edit dialog
   const plotsByMember: Record<string, string> = {};

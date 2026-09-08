@@ -59,7 +59,11 @@ export function AttachedDocuments({
         mime_type: file.type || null,
         size_bytes: file.size,
       });
-      if (rowError) throw new Error(rowError.message);
+      if (rowError) {
+        // Don't leave an orphaned object in the bucket
+        await supabase.current.storage.from("plot-documents").remove([path]);
+        throw new Error(rowError.message);
+      }
 
       toast.success(`"${file.name}" uploaded.`);
       router.refresh();
@@ -72,14 +76,21 @@ export function AttachedDocuments({
   }
 
   async function download(doc: PlotDocument) {
+    // Open the window synchronously with the click so popup blockers allow it
+    const win = window.open("about:blank", "_blank", "noopener");
     const { data, error } = await supabase.current.storage
       .from("plot-documents")
       .createSignedUrl(doc.storage_path, 3600);
     if (error || !data?.signedUrl) {
+      win?.close();
       toast.error("Could not open the document.");
       return;
     }
-    window.open(data.signedUrl, "_blank", "noopener");
+    if (win) {
+      win.location.assign(data.signedUrl);
+    } else {
+      window.location.assign(data.signedUrl);
+    }
   }
 
   return (
@@ -174,21 +185,23 @@ export function AttachedDocuments({
               const target = deleteTarget;
               if (!target) return;
               startBusy(async () => {
-                const { error: storageError } = await supabase.current.storage
-                  .from("plot-documents")
-                  .remove([target.storage_path]);
+                // Row first — if it fails, nothing changed. A failed storage
+                // remove afterwards leaves only an unreferenced file, which is
+                // harmless, so it doesn't block the delete.
                 const { error: rowError } = await supabase.current
                   .from("documents")
                   .delete()
                   .eq("id", target.id);
-                if (storageError || rowError) {
-                  toast.error(
-                    `Delete failed: ${(storageError ?? rowError)?.message}`
-                  );
-                } else {
-                  toast.success(`"${target.file_name}" deleted.`);
-                  router.refresh();
+                if (rowError) {
+                  toast.error(`Delete failed: ${rowError.message}`);
+                  setDeleteTarget(null);
+                  return;
                 }
+                await supabase.current.storage
+                  .from("plot-documents")
+                  .remove([target.storage_path]);
+                toast.success(`"${target.file_name}" deleted.`);
+                router.refresh();
                 setDeleteTarget(null);
               });
             }}

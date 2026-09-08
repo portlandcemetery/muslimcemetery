@@ -36,7 +36,8 @@ async function resolvePlotRefs(
     }
     plotIds.push(plot.id);
   }
-  return { plotIds };
+  // Dedupe — "a-AA1, a-AA1" would otherwise violate the mapping PK on insert
+  return { plotIds: [...new Set(plotIds)] };
 }
 
 export async function createUser(
@@ -49,6 +50,9 @@ export async function createUser(
   const password = String(formData.get("password") ?? "");
   const fullName = String(formData.get("full_name") ?? "").trim();
   const role = String(formData.get("role") ?? "viewer") as UserRole;
+  if (!["admin", "operator", "viewer"].includes(role)) {
+    return { error: "Invalid role." };
+  }
 
   if (!email || !password || !fullName) {
     return { error: "Name, email and password are required." };

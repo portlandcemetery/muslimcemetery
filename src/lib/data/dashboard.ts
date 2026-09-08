@@ -28,7 +28,7 @@ export async function getGardenCounts(): Promise<GardenCounts[]> {
   const [{ data: gardens, error: gErr }, { data: plots, error: pErr }] =
     await Promise.all([
       supabase.from("gardens").select("id, name, arabic_name").order("sort_order"),
-      supabase.from("plots").select("garden_id, status"),
+      supabase.from("plots").select("garden_id, status").limit(10000),
     ]);
   if (gErr) throw new Error(gErr.message);
   if (pErr) throw new Error(pErr.message);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
+import { startTransition, useActionState, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Pencil, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -98,7 +98,15 @@ function EditMemberDialog({
             Edit {member.full_name || member.email}
           </DialogTitle>
         </DialogHeader>
-        <form action={formAction} className="flex flex-col gap-3">
+        <form
+          // Manual dispatch keeps typed input when the action returns an error
+          onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            startTransition(() => formAction(formData));
+          }}
+          className="flex flex-col gap-3"
+        >
           <div>
             <Label className="text-[12.5px] font-semibold mb-1">Role</Label>
             <Select
@@ -202,7 +210,15 @@ export function TeamMembers({
                 Add Member
               </DialogTitle>
             </DialogHeader>
-            <form action={formAction} className="flex flex-col gap-3">
+            <form
+              // Manual dispatch keeps typed input when the action returns an error
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                startTransition(() => formAction(formData));
+              }}
+              className="flex flex-col gap-3"
+            >
               <div>
                 <Label htmlFor="member-name" className="text-[12.5px] font-semibold mb-1">
                   Full Name

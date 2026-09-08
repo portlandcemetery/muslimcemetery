@@ -7,12 +7,14 @@ export async function getPlot(
   ref: string
 ): Promise<PlotRow | null> {
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("plots")
     .select("*")
     .eq("garden_id", gardenId)
     .eq("ref", ref)
     .maybeSingle();
+  // A DB error must not masquerade as "plot not found" / "restricted"
+  if (error) throw new Error(`Failed to load plot: ${error.message}`);
   return data as PlotRow | null;
 }
 

@@ -17,6 +17,26 @@ export function isReportType(value: string | null): value is ReportType {
   return value !== null && (REPORT_TYPES as readonly string[]).includes(value);
 }
 
+export type ReportExport = {
+  id: number;
+  report_type: string;
+  file_name: string;
+  size_bytes: number | null;
+  exported_by_name: string | null;
+  created_at: string;
+};
+
+export async function getRecentExports(limit = 6): Promise<ReportExport[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("report_exports")
+    .select("id, report_type, file_name, size_bytes, exported_by_name, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as ReportExport[];
+}
+
 export type ReportStats = {
   totalPlots: number;
   totalBurials: number;
@@ -63,6 +83,7 @@ export async function getReportStats(): Promise<ReportStats> {
       supabase
         .from("plots")
         .select("id", { count: "exact", head: true })
+        .eq("status", "buried")
         .gte("burial_date", isoDate(monthStart))
         .lt("burial_date", isoDate(nextMonthStart)),
       fetchAll<{ id: string; price: number }>((from, to) =>
@@ -74,6 +95,7 @@ export async function getReportStats(): Promise<ReportStats> {
           .from("payments")
           .select("amount")
           .gte("paid_at", yearStart)
+          .order("id")
           .range(from, to)
       ),
     ]);
@@ -82,7 +104,7 @@ export async function getReportStats(): Promise<ReportStats> {
 
   const stats = sumStats(gardens);
   const pendingPayment = reservedPlots.filter(
-    (p) => Number(p.price ?? 0) - (paidByPlot.get(p.id) ?? 0) > 0
+    (p) => Number(p.price ?? 0) - (paidByPlot.get(p.id) ?? 0) > 0.005
   ).length;
   const paymentsYtd = payments.reduce((sum, p) => sum + Number(p.amount), 0);
 
@@ -102,12 +124,14 @@ export async function getReportStats(): Promise<ReportStats> {
 async function fetchPaidByPlot(): Promise<Map<string, number>> {
   const supabase = await createClient();
   const rows = await fetchAll<{ plot_id: string; amount: number }>((from, to) =>
-    supabase.from("payments").select("plot_id, amount").range(from, to)
+    supabase.from("payments").select("plot_id, amount").order("id").range(from, to)
   );
   const paid = new Map<string, number>();
   for (const r of rows) {
     paid.set(r.plot_id, (paid.get(r.plot_id) ?? 0) + Number(r.amount));
   }
+  // Round once at the boundary so float summation never leaks into reports
+  for (const [k, v] of paid) paid.set(k, Math.round(v * 100) / 100);
   return paid;
 }
 
@@ -186,7 +210,7 @@ export async function buildReportCsv(
           p.reservation_holder,
           Number(p.price ?? 0),
           totalPaid,
-          Number(p.price ?? 0) - totalPaid,
+          Math.round((Number(p.price ?? 0) - totalPaid) * 100) / 100,
         ]);
       }
       const csv = toCsv(
@@ -309,7 +333,7 @@ export async function buildReportCsv(
             p.purchaser_email,
             Number(p.price ?? 0),
             totalPaid,
-            Number(p.price ?? 0) - totalPaid,
+            Math.round((Number(p.price ?? 0) - totalPaid) * 100) / 100,
           ];
         })
       );

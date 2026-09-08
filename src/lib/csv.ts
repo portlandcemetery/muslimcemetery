@@ -2,7 +2,11 @@ export type CsvValue = string | number | null | undefined;
 
 function escapeCell(value: CsvValue): string {
   if (value === null || value === undefined) return "";
-  const s = String(value);
+  let s = String(value);
+  // Formula-injection guard: Excel executes cells starting with = + - @ or tab/CR
+  if (typeof value === "string" && /^[=+\-@\t\r]/.test(s)) {
+    s = `'${s}`;
+  }
   return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 

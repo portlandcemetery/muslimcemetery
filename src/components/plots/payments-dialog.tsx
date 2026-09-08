@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
+import { startTransition, useActionState, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -54,10 +54,14 @@ export function PaymentsDialog({
   const [method, setMethod] = useState("Cash");
   const [deleting, startDelete] = useTransition();
   const [deleteTarget, setDeleteTarget] = useState<Payment | null>(null);
+  const addFormRef = useRef<HTMLFormElement>(null);
   const [addState, addAction, adding] = useActionState<PaymentActionState, FormData>(
     async (prev, formData) => {
       const result = await addPayment(plotId, plotSlug, prev, formData);
-      if (!result.error) toast.success("Payment recorded.");
+      if (!result.error) {
+        toast.success("Payment recorded.");
+        addFormRef.current?.reset();
+      }
       return result;
     },
     { error: null }
@@ -65,7 +69,10 @@ export function PaymentsDialog({
 
   const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount), 0);
   const outstanding = price - totalPaid;
-  const today = new Date().toISOString().slice(0, 10);
+  const overpaid = totalPaid - price;
+  // Local date, not UTC — evening entries must not prefill tomorrow
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   return (
     <Dialog>
@@ -150,7 +157,16 @@ export function PaymentsDialog({
         />
 
         {canEdit && (
-          <form action={addAction} className="border-t border-border pt-4 mb-4">
+          <form
+            ref={addFormRef}
+            // Manual dispatch: keeps typed input when the action returns an error
+            onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              startTransition(() => addAction(formData));
+            }}
+            className="border-t border-border pt-4 mb-4"
+          >
             <div className="text-[13.5px] font-bold mb-3">Add Payment</div>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
@@ -242,6 +258,14 @@ export function PaymentsDialog({
               {price > 0 ? fmtMoney(Math.max(0, outstanding)) : "—"}
             </span>
           </div>
+          {overpaid > 0.005 && price > 0 && (
+            <div className="flex justify-between mt-2">
+              <span className="text-muted-foreground">Overpaid (credit)</span>
+              <span className="font-extrabold text-cyan-700">
+                {fmtMoney(overpaid)}
+              </span>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

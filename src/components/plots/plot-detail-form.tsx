@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { startTransition, useActionState, useState } from "react";
 import { toast } from "sonner";
 import { PlotHeader } from "./plot-header";
 import { DeceasedInfo } from "./deceased-info";
@@ -54,7 +54,17 @@ export function PlotDetailForm({
   );
 
   return (
-    <form action={formAction} className="flex min-h-full flex-col">
+    <form
+      // Manual dispatch instead of the action prop: React 19 resets uncontrolled
+      // fields after a form action completes even on error — this keeps typed
+      // input intact when a save fails.
+      onSubmit={(e) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        startTransition(() => formAction(formData));
+      }}
+      className="flex min-h-full flex-col"
+    >
       <input type="hidden" name="status" value={status} />
       <div className="flex-1 px-5 sm:px-8 lg:px-[44px] pt-6 sm:pt-8 pb-10">
         <PlotHeader

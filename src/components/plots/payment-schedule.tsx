@@ -20,9 +20,10 @@ export function PaymentSchedule({
   payments: Payment[];
   canEdit: boolean;
 }) {
-  // Summary is always derived from the ledger — mirrors the DB view, never stored
+  // Summary is always derived from the ledger — never stored
   const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount), 0);
   const outstanding = Math.max(0, price - totalPaid);
+  const overpaid = totalPaid - price;
   const pct = price > 0 ? Math.min(100, Math.round((totalPaid / price) * 100)) : 0;
 
   return (
@@ -45,6 +46,12 @@ export function PaymentSchedule({
           {price > 0 ? fmtMoney(outstanding) : "—"}
         </span>
       </div>
+      {price > 0 && overpaid > 0.005 && (
+        <div className="flex justify-between text-[15px] mt-3">
+          <span className="text-muted-foreground">Overpaid (credit)</span>
+          <span className="font-extrabold text-cyan-700">{fmtMoney(overpaid)}</span>
+        </div>
+      )}
       {price > 0 && (
         <>
           <div className="mt-4 h-2 rounded-full bg-border overflow-hidden">

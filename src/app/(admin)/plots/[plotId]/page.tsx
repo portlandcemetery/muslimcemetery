@@ -8,9 +8,17 @@ import { isStaff } from "@/lib/types";
 
 // URL shape: /plots/{gardenId}-{ref}, e.g. /plots/a-AA1 (refs repeat across gardens)
 function parseSlug(slug: string): { gardenId: string; ref: string } | null {
-  const match = /^([a-z])-([A-Ha-h][A-Fa-f][1-4])$/.exec(slug);
+  const match = /^([A-Za-z])-([A-Ha-h][A-Fa-f][1-4])$/.exec(slug);
   if (!match) return null;
-  return { gardenId: match[1], ref: match[2].toUpperCase() };
+  return { gardenId: match[1].toLowerCase(), ref: match[2].toUpperCase() };
+}
+
+function safeDecode(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value; // malformed % sequence — let the slug regex reject it
+  }
 }
 
 export default async function PlotDetailPage({
@@ -19,7 +27,7 @@ export default async function PlotDetailPage({
   params: Promise<{ plotId: string }>;
 }) {
   const { plotId } = await params;
-  const parsed = parseSlug(decodeURIComponent(plotId));
+  const parsed = parseSlug(safeDecode(plotId));
   if (!parsed) notFound();
 
   const [profile, gardens, plot] = await Promise.all([

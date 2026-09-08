@@ -14,13 +14,23 @@ export async function addPayment(
 ): Promise<PaymentActionState> {
   const profile = await requireRole("admin", "operator");
 
-  const amount = Number(String(formData.get("amount") ?? "").replace(/[$,]/g, ""));
-  if (Number.isNaN(amount) || amount <= 0) {
+  const amount =
+    Math.round(
+      Number(String(formData.get("amount") ?? "").replace(/[$,]/g, "")) * 100
+    ) / 100;
+  if (!Number.isFinite(amount) || amount <= 0) {
     return { error: "Enter a payment amount greater than zero." };
   }
+  if (amount > 99_999_999) {
+    return { error: "Payment amount is too large." };
+  }
   const paidAt = String(formData.get("paid_at") ?? "");
-  if (!paidAt) {
-    return { error: "Enter the payment date." };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(paidAt)) {
+    return { error: "Enter a valid payment date." };
+  }
+  const method = String(formData.get("method") ?? "Cash");
+  if (!["Cash", "Check", "Card", "Other"].includes(method)) {
+    return { error: "Invalid payment method." };
   }
 
   const supabase = await createClient();
@@ -28,7 +38,7 @@ export async function addPayment(
     plot_id: plotId,
     amount,
     paid_at: paidAt,
-    method: String(formData.get("method") ?? "cash"),
+    method,
     received_by: String(formData.get("received_by") ?? "").trim() || null,
     reference_no: String(formData.get("reference_no") ?? "").trim() || null,
     note: String(formData.get("note") ?? "").trim() || null,

@@ -59,9 +59,10 @@ export function PlotCell({
           );
 
           // Unavailable plots (trees/obstacles) are dark grey and inert;
-          // only admin keeps the link so the status can be reverted.
+          // admin keeps the link to revert, and a viewer keeps the link to
+          // their own plot even if it was marked unavailable.
           const trigger =
-            unavailable && !isAdmin ? (
+            unavailable && !isAdmin && !p.mine ? (
               <div
                 className={`block min-w-0 min-h-[64px] rounded-[9px] border border-zinc-300 bg-zinc-300/60 py-[7px] px-2 cursor-not-allowed transition-opacity duration-150 ${
                   dimmed ? "opacity-20" : "opacity-70"

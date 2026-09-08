@@ -15,6 +15,9 @@ export default async function GardensPage({
     searchParams,
   ]);
 
+  if (gardens.length === 0) {
+    throw new Error("No gardens configured.");
+  }
   const gardenId = gardens.some((g) => g.id === params.garden)
     ? params.garden!
     : gardens[0].id;
