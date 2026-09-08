@@ -99,5 +99,12 @@ export type ActivityEntry = {
   created_at: string;
 };
 
+export type OrganizationSettings = {
+  org_name: string;
+  cemetery_name: string;
+  contact_email: string;
+  phone: string;
+};
+
 export const isStaff = (role: UserRole | null | undefined) =>
   role === "admin" || role === "operator";

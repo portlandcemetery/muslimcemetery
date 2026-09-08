@@ -129,7 +129,8 @@ export function DisasterRecovery() {
         </div>
       </div>
 
-      {/* schedule */}
+      {/* schedule — hidden for now */}
+      {false && (
       <div className="border-t border-muted py-[22px] px-[30px] flex items-center gap-5 flex-wrap bg-secondary">
         <div className="flex items-center gap-[14px] flex-1 min-w-[280px]">
           <Switch
@@ -191,6 +192,7 @@ export function DisasterRecovery() {
           · 214 MB
         </div>
       </div>
+      )}
     </Card>
   );
 }
