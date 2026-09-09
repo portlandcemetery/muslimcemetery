@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Sprout,
@@ -20,7 +20,7 @@ import {
   SidebarMenuButton,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { signOut } from "@/lib/actions/auth";
+import { authClient } from "@/services/auth/auth-client";
 import type { UserRole } from "@/lib/types";
 
 type NavItem = { href: string; label: string; icon: LucideIcon; roles: UserRole[] };
@@ -34,6 +34,7 @@ const NAV: NavItem[] = [
 
 export function AppSidebar({ role }: { role: UserRole }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { setOpenMobile } = useSidebar();
   const nav = NAV.filter((item) => item.roles.includes(role));
 
@@ -85,9 +86,11 @@ export function AppSidebar({ role }: { role: UserRole }) {
         <SidebarMenu className="gap-1">
           <SidebarMenuItem>
             <SidebarMenuButton
-              onClick={() => {
+              onClick={async () => {
                 setOpenMobile(false);
-                void signOut();
+                await authClient.signOut();
+                router.push("/");
+                router.refresh();
               }}
               className="h-auto py-3 px-[15px] gap-[13px] rounded-[11px] text-[15.5px] font-medium text-destructive hover:bg-destructive/10 hover:text-destructive [&_svg]:size-[19px]"
             >

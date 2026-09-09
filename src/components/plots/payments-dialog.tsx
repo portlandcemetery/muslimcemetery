@@ -1,8 +1,10 @@
 "use client";
 
-import { startTransition, useActionState, useRef, useState, useTransition } from "react";
+import { useRef, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
+import { useTRPC } from "@/services/trpc/client";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +23,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { addPayment, deletePayment, type PaymentActionState } from "@/lib/actions/payments";
 import type { Payment } from "@/lib/types";
 
 const METHODS = ["Cash", "Check", "Card", "Other"];
@@ -37,35 +38,50 @@ const fmtDate = (iso: string) =>
   });
 
 export function PaymentsDialog({
-  plotId,
-  plotSlug,
+  gardenId,
+  plotRef,
   price,
   payments,
   canEdit,
   children,
 }: {
-  plotId: string;
-  plotSlug: string;
+  gardenId: string;
+  plotRef: string;
   price: number;
   payments: Payment[];
   canEdit: boolean;
   children: React.ReactNode;
 }) {
   const [method, setMethod] = useState("Cash");
-  const [deleting, startDelete] = useTransition();
   const [deleteTarget, setDeleteTarget] = useState<Payment | null>(null);
+  const [addError, setAddError] = useState<string | null>(null);
   const addFormRef = useRef<HTMLFormElement>(null);
-  const [addState, addAction, adding] = useActionState<PaymentActionState, FormData>(
-    async (prev, formData) => {
-      const result = await addPayment(plotId, plotSlug, prev, formData);
-      if (!result.error) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  const add = useMutation(
+    trpc.payments.add.mutationOptions({
+      onSuccess: () => {
         toast.success("Payment recorded.");
+        setAddError(null);
         addFormRef.current?.reset();
-      }
-      return result;
-    },
-    { error: null }
+        queryClient.invalidateQueries();
+      },
+      onError: (e) => setAddError(e.message),
+    })
   );
+  const remove = useMutation(
+    trpc.payments.remove.mutationOptions({
+      onSuccess: () => {
+        toast.success("Payment deleted.");
+        queryClient.invalidateQueries();
+      },
+      onError: (e) => toast.error(e.message),
+    })
+  );
+  const adding = add.isPending;
+  const deleting = remove.isPending;
+  const addState = { error: addError };
 
   const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount), 0);
   const outstanding = price - totalPaid;
@@ -144,26 +160,35 @@ export function PaymentsDialog({
           onConfirm={() => {
             const target = deleteTarget;
             if (!target) return;
-            startDelete(async () => {
-              const res = await deletePayment(target.id, plotSlug);
-              if (res.error) {
-                toast.error(res.error);
-              } else {
-                toast.success("Payment deleted.");
-              }
-              setDeleteTarget(null);
-            });
+            remove.mutate(
+              { paymentId: target.id },
+              { onSettled: () => setDeleteTarget(null) }
+            );
           }}
         />
 
         {canEdit && (
           <form
             ref={addFormRef}
-            // Manual dispatch: keeps typed input when the action returns an error
             onSubmit={(e) => {
               e.preventDefault();
-              const formData = new FormData(e.currentTarget);
-              startTransition(() => addAction(formData));
+              const fd = new FormData(e.currentTarget);
+              const amountRaw = String(fd.get("amount") ?? "").replace(/[$,]/g, "");
+              const amount = Number(amountRaw);
+              if (!Number.isFinite(amount) || amount <= 0) {
+                setAddError("Enter a payment amount greater than zero.");
+                return;
+              }
+              add.mutate({
+                gardenId,
+                ref: plotRef,
+                amount,
+                paid_at: String(fd.get("paid_at") ?? ""),
+                method: method as "Cash" | "Check" | "Card" | "Other",
+                received_by: String(fd.get("received_by") ?? ""),
+                reference_no: String(fd.get("reference_no") ?? ""),
+                note: String(fd.get("note") ?? ""),
+              });
             }}
             className="border-t border-border pt-4 mb-4"
           >

@@ -1,15 +1,12 @@
 "use client";
 
-import { startTransition, useActionState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SettingsSection } from "./settings-section";
-import {
-  saveOrganizationSettings,
-  type OrgSettingsState,
-} from "@/lib/actions/organization";
+import { useTRPC } from "@/services/trpc/client";
 import type { OrganizationSettings } from "@/lib/types";
 
 const FIELDS = [
@@ -24,27 +21,29 @@ export function OrganizationProfileForm({
 }: {
   settings: OrganizationSettings;
 }) {
-  const [, formAction, pending] = useActionState<OrgSettingsState, FormData>(
-    async (prev, formData) => {
-      const result = await saveOrganizationSettings(prev, formData);
-      if (result.error) {
-        toast.error(result.error);
-      } else {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const save = useMutation(
+    trpc.organization.save.mutationOptions({
+      onSuccess: () => {
         toast.success("Organization profile saved.");
-      }
-      return result;
-    },
-    { error: null, savedAt: null }
+        queryClient.invalidateQueries();
+      },
+      onError: (e) => toast.error(e.message),
+    })
   );
 
   return (
     <form
-      // Manual dispatch: React 19 resets uncontrolled fields after a form
-      // action even on error — this keeps typed input intact when a save fails.
       onSubmit={(e) => {
         e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        startTransition(() => formAction(formData));
+        const fd = new FormData(e.currentTarget);
+        save.mutate({
+          org_name: String(fd.get("org_name") ?? ""),
+          cemetery_name: String(fd.get("cemetery_name") ?? ""),
+          contact_email: String(fd.get("contact_email") ?? ""),
+          phone: String(fd.get("phone") ?? ""),
+        });
       }}
     >
       <SettingsSection
@@ -73,10 +72,10 @@ export function OrganizationProfileForm({
         <div className="flex justify-end mt-[22px]">
           <Button
             type="submit"
-            disabled={pending}
+            disabled={save.isPending}
             className="h-auto py-[13px] px-7 rounded-xl text-[15px] font-bold hover:bg-primary/90"
           >
-            {pending ? "Saving…" : "Save Changes"}
+            {save.isPending ? "Saving…" : "Save Changes"}
           </Button>
         </div>
       </SettingsSection>

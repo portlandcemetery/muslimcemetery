@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import type { DashboardStats } from "@/lib/data/dashboard";
+import type { DashboardStats } from "@/services/db/aggregates";
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 

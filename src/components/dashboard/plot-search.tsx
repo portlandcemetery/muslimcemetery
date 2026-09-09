@@ -1,39 +1,32 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { createClient } from "@/lib/supabase/client";
+import { useTRPC } from "@/services/trpc/client";
 import { STATUS_META } from "@/components/gardens/garden-data";
-import type { MapPlot } from "@/lib/types";
 
 export function PlotSearch() {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<MapPlot[]>([]);
+  const [debounced, setDebounced] = useState("");
   const [open, setOpen] = useState(false);
-  const supabase = useRef(createClient());
+  const trpc = useTRPC();
 
   useEffect(() => {
     const q = query.trim();
-    if (q.length < 2) return;
-    // ignore flag: a slow in-flight response must not overwrite newer results
-    // or reopen the dropdown after the query was cleared
-    let ignore = false;
-    const timer = setTimeout(async () => {
-      const { data, error } = await supabase.current.rpc("search_map_plots", {
-        p_query: q,
-        p_limit: 8,
-      });
-      if (ignore || error) return;
-      setResults(((data ?? []) as MapPlot[]));
-      setOpen(true);
-    }, 250);
-    return () => {
-      ignore = true;
-      clearTimeout(timer);
-    };
+    const timer = setTimeout(() => setDebounced(q.length >= 2 ? q : ""), 250);
+    return () => clearTimeout(timer);
   }, [query]);
+
+  const results = useQuery(
+    trpc.plots.search.queryOptions(
+      { query: debounced, limit: 8 },
+      { enabled: debounced.length >= 2 }
+    )
+  );
+  const rows = results.data ?? [];
 
   return (
     <div className="relative mb-[30px] max-w-[620px]">
@@ -47,28 +40,24 @@ export function PlotSearch() {
         onChange={(e) => {
           const value = e.target.value;
           setQuery(value);
-          if (value.trim().length < 2) {
-            setResults([]);
-            setOpen(false);
-          }
+          setOpen(value.trim().length >= 2);
         }}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
-        onFocus={() => results.length > 0 && setOpen(true)}
+        onFocus={() => rows.length > 0 && setOpen(true)}
         placeholder="Search plots by name or reference — e.g. Ahmad Hassan or AB2"
         className="h-[52px] pl-[46px] pr-4 text-[15.5px] bg-card rounded-[13px]"
       />
-      {open && (
+      {open && debounced.length >= 2 && (
         <div
-          // keep the input focused so blur can't unmount the list mid-click
           onMouseDown={(e) => e.preventDefault()}
           className="absolute z-20 top-[58px] left-0 right-0 bg-card border border-border rounded-[13px] shadow-lg overflow-hidden"
         >
-          {results.length === 0 ? (
+          {rows.length === 0 ? (
             <div className="py-3 px-4 text-[14px] text-muted-foreground">
-              No plots found.
+              {results.isFetching ? "Searching…" : "No plots found."}
             </div>
           ) : (
-            results.map((p) => (
+            rows.map((p) => (
               <Link
                 key={p.id}
                 href={`/plots/${p.garden_id}-${p.ref}`}

@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import type { ReportStats as ReportStatsData } from "@/lib/data/reports";
+import type { ReportStats as ReportStatsData } from "@/services/reports/build-csv";
 
 type Stat = { label: string; value: string; sub: string; color: string };
 

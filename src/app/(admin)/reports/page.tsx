@@ -1,16 +1,37 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { ReportStats } from "@/components/reports/report-stats";
 import { DisasterRecovery } from "@/components/reports/disaster-recovery";
 import { GenerateReport } from "@/components/reports/generate-report";
 import { RecentExports } from "@/components/reports/recent-exports";
-import { requireRole } from "@/lib/data/auth";
-import { getRecentExports, getReportStats } from "@/lib/data/reports";
+import { PageLoader } from "@/components/page-loader";
+import { useTRPC } from "@/services/trpc/client";
+import { isStaff } from "@/lib/types";
 
-export default async function ReportsPage() {
-  await requireRole("admin", "operator");
-  const [stats, recentExports] = await Promise.all([
-    getReportStats(),
-    getRecentExports(),
-  ]);
+export default function ReportsPage() {
+  const trpc = useTRPC();
+  const router = useRouter();
+  const me = useQuery(trpc.auth.me.queryOptions());
+  const allowed = !!me.data && isStaff(me.data.role);
+
+  useEffect(() => {
+    if (me.data && !isStaff(me.data.role)) router.replace("/gardens");
+  }, [me.data, router]);
+
+  const stats = useQuery(
+    trpc.reports.stats.queryOptions(undefined, { enabled: allowed })
+  );
+  const recentExports = useQuery(
+    trpc.reports.recentExports.queryOptions(undefined, { enabled: allowed })
+  );
+
+  if (!allowed || !stats.data) {
+    return <PageLoader />;
+  }
+
   return (
     <div className="px-5 sm:px-8 lg:px-[44px] pt-6 sm:pt-[38px] pb-[56px]">
       <div className="mb-[30px]">
@@ -22,10 +43,10 @@ export default async function ReportsPage() {
         </p>
       </div>
 
-      <ReportStats stats={stats} />
+      <ReportStats stats={stats.data} />
       <DisasterRecovery />
       <GenerateReport />
-      <RecentExports exports={recentExports} />
+      <RecentExports exports={recentExports.data ?? []} />
     </div>
   );
 }

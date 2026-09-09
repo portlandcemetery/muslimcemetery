@@ -1,12 +1,26 @@
 import type { NextRequest } from "next/server";
-import { revalidatePath } from "next/cache";
-import { getSessionProfile } from "@/lib/data/auth";
-import { createClient } from "@/lib/supabase/server";
+import { eq } from "drizzle-orm";
+
+import { auth } from "@/services/auth/auth";
+import { db } from "@/services/db/index";
+import { profiles, reportExports } from "@/services/db/schema";
+import { buildReportCsv, isReportType } from "@/services/reports/build-csv";
 import { isStaff } from "@/lib/types";
-import { buildReportCsv, isReportType } from "@/lib/data/reports";
 
 export async function GET(request: NextRequest) {
-  const profile = await getSessionProfile();
+  const session = await auth.api.getSession({ headers: request.headers });
+  if (!session) return new Response("Forbidden", { status: 403 });
+
+  const [profile] = await db
+    .select({
+      id: profiles.id,
+      role: profiles.role,
+      full_name: profiles.full_name,
+      email: profiles.email,
+    })
+    .from(profiles)
+    .where(eq(profiles.id, session.user.id))
+    .limit(1);
   if (!profile || !isStaff(profile.role)) {
     return new Response("Forbidden", { status: 403 });
   }
@@ -18,17 +32,18 @@ export async function GET(request: NextRequest) {
 
   const { filename, csv } = await buildReportCsv(type);
 
-  // Log the export so Recent Exports shows real history (best-effort —
-  // a failed log must not block the download)
-  const supabase = await createClient();
-  await supabase.from("report_exports").insert({
-    report_type: type,
-    file_name: filename,
-    size_bytes: Buffer.byteLength(csv, "utf-8"),
-    exported_by: profile.id,
-    exported_by_name: profile.full_name || profile.email,
-  });
-  revalidatePath("/reports");
+  // Best-effort export history — a failed log must not block the download.
+  try {
+    await db.insert(reportExports).values({
+      report_type: type,
+      file_name: filename,
+      size_bytes: Buffer.byteLength(csv, "utf-8"),
+      exported_by: profile.id,
+      exported_by_name: profile.full_name || profile.email,
+    });
+  } catch {
+    // ignore
+  }
 
   return new Response(csv, {
     headers: {

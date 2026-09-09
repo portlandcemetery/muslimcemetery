@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Hanken_Grotesk, Scheherazade_New } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "@/components/ui/sonner";
+import { TRPCReactProvider } from "@/services/trpc/client";
 import "./globals.css";
 
 const hanken = Hanken_Grotesk({
@@ -29,8 +30,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${hanken.variable} ${arabic.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <NuqsAdapter>{children}</NuqsAdapter>
-        <Toaster />
+        <TRPCReactProvider>
+          <NuqsAdapter>{children}</NuqsAdapter>
+          <Toaster />
+        </TRPCReactProvider>
       </body>
     </html>
   );

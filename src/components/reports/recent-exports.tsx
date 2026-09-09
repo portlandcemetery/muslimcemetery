@@ -1,6 +1,6 @@
 import { FileText } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import type { ReportExport } from "@/lib/data/reports";
+import type { ReportExport } from "@/services/trpc/routers/reports";
 
 function fmtSize(bytes: number | null): string {
   if (!bytes) return "";

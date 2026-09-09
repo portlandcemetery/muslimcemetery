@@ -1,54 +1,90 @@
-import { notFound } from "next/navigation";
+"use client";
+
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { PlotDetailForm } from "@/components/plots/plot-detail-form";
-import { requireProfile } from "@/lib/data/auth";
-import { getGardens } from "@/lib/data/gardens";
-import { getDocuments, getPayments, getPlot } from "@/lib/data/plots";
+import { PageLoader } from "@/components/page-loader";
+import { useTRPC } from "@/services/trpc/client";
 import { isStaff } from "@/lib/types";
 
-// URL shape: /plots/{gardenId}-{ref}, e.g. /plots/a-AA1 (refs repeat across gardens)
 function parseSlug(slug: string): { gardenId: string; ref: string } | null {
-  const match = /^([A-Za-z])-([A-Ha-h][A-Fa-f][1-4])$/.exec(slug);
+  const decoded = (() => {
+    try {
+      return decodeURIComponent(slug);
+    } catch {
+      return slug;
+    }
+  })();
+  const match = /^([A-Za-z])-([A-Ha-h][A-Fa-f][1-4])$/.exec(decoded);
   if (!match) return null;
   return { gardenId: match[1].toLowerCase(), ref: match[2].toUpperCase() };
 }
 
-function safeDecode(value: string): string {
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return value; // malformed % sequence — let the slug regex reject it
+export default function PlotDetailPage() {
+  const trpc = useTRPC();
+  const params = useParams<{ plotId: string }>();
+  const parsed = parseSlug(params.plotId ?? "");
+
+  const me = useQuery(trpc.auth.me.queryOptions());
+  const gardens = useQuery(trpc.gardens.list.queryOptions());
+  const plot = useQuery(
+    trpc.plots.getBySlug.queryOptions(
+      { gardenId: parsed?.gardenId ?? "", ref: parsed?.ref ?? "" },
+      { enabled: !!parsed && !!me.data }
+    )
+  );
+  const payments = useQuery(
+    trpc.payments.listByPlot.queryOptions(
+      { gardenId: parsed?.gardenId ?? "", ref: parsed?.ref ?? "" },
+      { enabled: !!parsed && !!plot.data }
+    )
+  );
+  const documents = useQuery(
+    trpc.documents.listByPlot.queryOptions(
+      { gardenId: parsed?.gardenId ?? "", ref: parsed?.ref ?? "" },
+      { enabled: !!parsed && !!plot.data }
+    )
+  );
+
+  if (!parsed) {
+    return (
+      <div className="flex min-h-full items-center justify-center px-5 text-muted-foreground">
+        Plot not found.
+      </div>
+    );
   }
-}
 
-export default async function PlotDetailPage({
-  params,
-}: {
-  params: Promise<{ plotId: string }>;
-}) {
-  const { plotId } = await params;
-  const parsed = parseSlug(safeDecode(plotId));
-  if (!parsed) notFound();
+  const garden = gardens.data?.find((g) => g.id === parsed.gardenId);
 
-  const [profile, gardens, plot] = await Promise.all([
-    requireProfile(),
-    getGardens(),
-    getPlot(parsed.gardenId, parsed.ref),
-  ]);
+  if (!me.data || plot.isLoading || gardens.isLoading) {
+    return <PageLoader />;
+  }
 
-  const garden = gardens.find((g) => g.id === parsed.gardenId);
-  if (!garden) notFound();
+  if (!garden) {
+    return (
+      <div className="flex min-h-full items-center justify-center px-5 text-muted-foreground">
+        Garden not found.
+      </div>
+    );
+  }
 
-  // Non-staff only get rows for plots mapped to them (RLS) — anything else is restricted
-  if (!plot) {
-    if (isStaff(profile.role)) notFound();
+  // Restricted: viewer without access (server returns null).
+  if (!plot.data) {
+    if (isStaff(me.data.role)) {
+      return (
+        <div className="flex min-h-full items-center justify-center px-5 text-muted-foreground">
+          Plot not found.
+        </div>
+      );
+    }
     return (
       <div className="flex min-h-full items-center justify-center px-5">
         <div className="max-w-[420px] text-center bg-card border border-border rounded-[20px] p-9">
           <div className="font-bold text-[18px] mb-2">Restricted plot</div>
           <p className="text-[14.5px] text-muted-foreground mb-5">
-            Plot {parsed.ref} in {garden.name} isn&apos;t linked to your
-            account. Contact the office if you believe this is a mistake.
+            Plot {parsed.ref} in {garden.name} isn&apos;t linked to your account.
+            Contact the office if you believe this is a mistake.
           </p>
           <Link href="/gardens" className="text-primary font-semibold text-[14.5px]">
             ← Back to the garden map
@@ -58,19 +94,14 @@ export default async function PlotDetailPage({
     );
   }
 
-  const [payments, documents] = await Promise.all([
-    getPayments(plot.id),
-    getDocuments(plot.id),
-  ]);
-
   return (
     <PlotDetailForm
-      plot={plot}
+      plot={plot.data}
       gardenName={garden.name}
       gardenArabic={garden.arabic}
-      payments={payments}
-      documents={documents}
-      role={profile.role}
+      payments={payments.data ?? []}
+      documents={documents.data ?? []}
+      role={me.data.role}
     />
   );
 }

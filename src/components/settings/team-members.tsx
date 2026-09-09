@@ -1,8 +1,10 @@
 "use client";
 
-import { startTransition, useActionState, useState, useTransition } from "react";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pencil, Trash2 } from "lucide-react";
+import { useTRPC } from "@/services/trpc/client";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,12 +25,6 @@ import {
 } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { SettingsSection } from "./settings-section";
-import {
-  createUser,
-  deleteUser,
-  updateUser,
-  type UserActionState,
-} from "@/lib/actions/users";
 import type { Profile, UserRole } from "@/lib/types";
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -59,17 +55,19 @@ function EditMemberDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [role, setRole] = useState<UserRole>(member.role);
-  const [state, formAction, pending] = useActionState<UserActionState, FormData>(
-    async (prev, formData) => {
-      const result = await updateUser(member.id, prev, formData);
-      if (result.success) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const update = useMutation(
+    trpc.users.update.mutationOptions({
+      onSuccess: () => {
         setOpen(false);
         toast.success(`${member.full_name || member.email} updated.`);
-      }
-      return result;
-    },
-    { error: null }
+        queryClient.invalidateQueries();
+      },
+    })
   );
+  const state = { error: update.error?.message ?? null };
+  const pending = update.isPending;
 
   const needsPlots = role === "viewer";
 
@@ -99,11 +97,14 @@ function EditMemberDialog({
           </DialogTitle>
         </DialogHeader>
         <form
-          // Manual dispatch keeps typed input when the action returns an error
           onSubmit={(e) => {
             e.preventDefault();
-            const formData = new FormData(e.currentTarget);
-            startTransition(() => formAction(formData));
+            const fd = new FormData(e.currentTarget);
+            update.mutate({
+              userId: member.id,
+              role,
+              plot_refs: String(fd.get("plot_refs") ?? ""),
+            });
           }}
           className="flex flex-col gap-3"
         >
@@ -175,19 +176,27 @@ export function TeamMembers({
 }) {
   const [open, setOpen] = useState(false);
   const [role, setRole] = useState<UserRole>("operator");
-  const [removing, startRemove] = useTransition();
   const [removeTarget, setRemoveTarget] = useState<Profile | null>(null);
-  const [state, formAction, pending] = useActionState<UserActionState, FormData>(
-    async (prev, formData) => {
-      const result = await createUser(prev, formData);
-      if (result.success) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const create = useMutation(
+    trpc.users.create.mutationOptions({
+      onSuccess: () => {
         setOpen(false);
         toast.success("Account created.");
-      }
-      return result;
-    },
-    { error: null }
+        queryClient.invalidateQueries();
+      },
+    })
   );
+  const remove = useMutation(
+    trpc.users.remove.mutationOptions({
+      onSuccess: () => queryClient.invalidateQueries(),
+      onError: (e) => toast.error(e.message),
+    })
+  );
+  const state = { error: create.error?.message ?? null };
+  const pending = create.isPending;
+  const removing = remove.isPending;
 
   const needsPlots = role === "viewer";
 
@@ -211,11 +220,16 @@ export function TeamMembers({
               </DialogTitle>
             </DialogHeader>
             <form
-              // Manual dispatch keeps typed input when the action returns an error
               onSubmit={(e) => {
                 e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                startTransition(() => formAction(formData));
+                const fd = new FormData(e.currentTarget);
+                create.mutate({
+                  full_name: String(fd.get("full_name") ?? ""),
+                  email: String(fd.get("email") ?? ""),
+                  password: String(fd.get("password") ?? ""),
+                  role,
+                  plot_refs: String(fd.get("plot_refs") ?? ""),
+                });
               }}
               className="flex flex-col gap-3"
             >
@@ -306,15 +320,14 @@ export function TeamMembers({
         onConfirm={() => {
           const target = removeTarget;
           if (!target) return;
-          startRemove(async () => {
-            const res = await deleteUser(target.id);
-            if (res.error) {
-              toast.error(res.error);
-            } else {
-              toast.success(`${target.full_name || target.email} removed.`);
+          remove.mutate(
+            { userId: target.id },
+            {
+              onSuccess: () =>
+                toast.success(`${target.full_name || target.email} removed.`),
+              onSettled: () => setRemoveTarget(null),
             }
-            setRemoveTarget(null);
-          });
+          );
         }}
       />
       {members.map((m, i) => (

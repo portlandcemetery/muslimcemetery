@@ -1,95 +1,46 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  requestPasswordReset,
-  signIn,
-  type ResetState,
-  type SignInState,
-} from "@/lib/actions/auth";
+import { authClient } from "@/services/auth/auth-client";
 
 export function PortalSignIn() {
+  const router = useRouter();
   const [showPw, setShowPw] = useState(false);
-  const [mode, setMode] = useState<"sign-in" | "reset">("sign-in");
-  const [state, formAction, pending] = useActionState<SignInState, FormData>(
-    signIn,
-    { error: null }
-  );
-  const [resetState, resetAction, resetPending] = useActionState<
-    ResetState,
-    FormData
-  >(requestPasswordReset, { error: null, sent: false });
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
 
   const fieldCls = "h-[54px] text-base bg-card rounded-xl";
 
-  if (mode === "reset") {
-    return (
-      <Card className="w-full max-w-[460px] p-0 gap-0 border-border border-t-[3px] border-t-primary rounded-[5px_5px_18px_18px] shadow-[0_26px_60px_-34px_rgba(34,39,31,.5)]">
-        <form action={resetAction} className="p-9">
-          <h3 className="font-extrabold text-[22px] tracking-[-0.02em] mb-[6px]">
-            Reset your password
-          </h3>
-          <p className="text-[14.5px] text-foreground/70 mb-[22px]">
-            We&apos;ll email you a link to set a new password.
-          </p>
-          <Label
-            htmlFor="reset-email"
-            className="text-sm font-semibold text-card-foreground mb-[9px]"
-          >
-            Email address
-          </Label>
-          <Input
-            id="reset-email"
-            name="email"
-            type="email"
-            required
-            placeholder="operator@icportland.org"
-            className={`${fieldCls} mb-[22px]`}
-          />
-          <Button
-            type="submit"
-            disabled={resetPending || resetState.sent}
-            className="w-full h-14 text-[16.5px] font-bold rounded-[13px]"
-          >
-            {resetPending ? "Sending…" : "Send reset link"}
-          </Button>
-
-          {resetState.sent && (
-            <Alert className="mt-[18px] bg-primary/10 border-primary/25">
-              <AlertDescription>
-                If that email is registered, a reset link is on its way. Check
-                your inbox.
-              </AlertDescription>
-            </Alert>
-          )}
-          {resetState.error && (
-            <Alert className="mt-[18px] bg-destructive/10 border-destructive/25 text-destructive">
-              <AlertDescription className="text-destructive">
-                {resetState.error}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <button
-            type="button"
-            onClick={() => setMode("sign-in")}
-            className="mt-[22px] w-full text-center text-[13.5px] text-primary hover:text-primary/80 bg-transparent cursor-pointer"
-          >
-            Back to sign in
-          </button>
-        </form>
-      </Card>
-    );
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    const email = String(form.get("email") ?? "").trim();
+    const password = String(form.get("password") ?? "");
+    if (!email || !password) {
+      setError("Enter your email and password.");
+      return;
+    }
+    setError(null);
+    setPending(true);
+    const { error } = await authClient.signIn.email({ email, password });
+    if (error) {
+      setError("Invalid email or password.");
+      setPending(false);
+      return;
+    }
+    router.push("/dashboard");
+    router.refresh();
   }
 
   return (
     <Card className="w-full max-w-[460px] p-0 gap-0 border-border border-t-[3px] border-t-primary rounded-[5px_5px_18px_18px] shadow-[0_26px_60px_-34px_rgba(34,39,31,.5)]">
-      <form action={formAction} className="p-9">
+      <form onSubmit={onSubmit} className="p-9">
         <Label htmlFor="portal-email" className="text-sm font-semibold text-card-foreground mb-[9px]">
           Email address
         </Label>
@@ -144,15 +95,7 @@ export function PortalSignIn() {
           {pending ? "Signing in…" : "Sign In to Management"}
         </Button>
 
-        <button
-          type="button"
-          onClick={() => setMode("reset")}
-          className="mt-[16px] w-full text-center text-[13.5px] text-primary hover:text-primary/80 bg-transparent cursor-pointer"
-        >
-          Forgot your password?
-        </button>
-
-        {state.error && (
+        {error && (
           <Alert className="mt-[18px] bg-destructive/10 border-destructive/25 text-destructive">
             <svg
               width="18"
@@ -168,9 +111,7 @@ export function PortalSignIn() {
               <path d="M12 8v4" />
               <path d="M12 16h.01" />
             </svg>
-            <AlertDescription className="text-destructive">
-              {state.error}
-            </AlertDescription>
+            <AlertDescription className="text-destructive">{error}</AlertDescription>
           </Alert>
         )}
 

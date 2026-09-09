@@ -1,44 +1,35 @@
-import { OrganizationProfile } from "@/components/settings/organization-profile";
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { OrganizationProfileForm } from "@/components/settings/organization-profile-form";
 import { RolesPermissions } from "@/components/settings/roles-permissions";
 import { TeamMembers } from "@/components/settings/team-members";
 import { AuditLog } from "@/components/settings/audit-log";
-import { requireRole } from "@/lib/data/auth";
-import { getRecentActivity } from "@/lib/data/dashboard";
-import { createClient } from "@/lib/supabase/server";
-import type { Profile } from "@/lib/types";
+import { PageLoader } from "@/components/page-loader";
+import { useTRPC } from "@/services/trpc/client";
 
-export default async function SettingsPage() {
-  const profile = await requireRole("admin");
+export default function SettingsPage() {
+  const trpc = useTRPC();
+  const router = useRouter();
+  const me = useQuery(trpc.auth.me.queryOptions());
+  const allowed = me.data?.role === "admin";
 
-  const supabase = await createClient();
-  const [
-    { data: members, error: membersError },
-    { data: mappings, error: mappingsError },
-    activity,
-  ] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("id, email, full_name, role, created_at")
-      .order("created_at"),
-    supabase
-      .from("plot_representatives")
-      .select("profile_id, plots(garden_id, ref)"),
-    getRecentActivity(10),
-  ]);
-  // A failed read must not render an empty member list (editing against
-  // empty prefills would wipe a viewer's plot links)
-  if (membersError) throw new Error(membersError.message);
-  if (mappingsError) throw new Error(mappingsError.message);
+  useEffect(() => {
+    if (me.data && me.data.role !== "admin") router.replace("/gardens");
+  }, [me.data, router]);
 
-  // profile_id -> "a-AA1, a-AA2" for prefilling the edit dialog
-  const plotsByMember: Record<string, string> = {};
-  for (const m of mappings ?? []) {
-    const plot = m.plots as unknown as { garden_id: string; ref: string } | null;
-    if (!plot) continue;
-    const slug = `${plot.garden_id}-${plot.ref}`;
-    plotsByMember[m.profile_id] = plotsByMember[m.profile_id]
-      ? `${plotsByMember[m.profile_id]}, ${slug}`
-      : slug;
+  const users = useQuery(trpc.users.list.queryOptions(undefined, { enabled: allowed }));
+  const org = useQuery(
+    trpc.organization.get.queryOptions(undefined, { enabled: allowed })
+  );
+  const activity = useQuery(
+    trpc.dashboard.recentActivity.queryOptions({ limit: 10 }, { enabled: allowed })
+  );
+
+  if (!allowed || !users.data || !org.data) {
+    return <PageLoader />;
   }
 
   return (
@@ -53,14 +44,14 @@ export default async function SettingsPage() {
       </div>
 
       <div className="flex flex-col gap-[22px]">
-        <OrganizationProfile />
+        <OrganizationProfileForm settings={org.data} />
         <RolesPermissions />
         <TeamMembers
-          members={(members ?? []) as Profile[]}
-          currentUserId={profile.id}
-          plotsByMember={plotsByMember}
+          members={users.data.members}
+          currentUserId={users.data.currentUserId}
+          plotsByMember={users.data.plotsByMember}
         />
-        <AuditLog entries={activity} />
+        <AuditLog entries={activity.data ?? []} />
       </div>
     </div>
   );

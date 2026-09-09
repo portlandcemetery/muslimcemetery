@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Diamond } from "@/components/diamond";
-import type { GardenCounts } from "@/lib/data/dashboard";
+import type { GardenCounts } from "@/services/db/aggregates";
 
 const pct = (n: number, total: number) =>
   total > 0 ? `${((n / total) * 100).toFixed(2)}%` : "0%";

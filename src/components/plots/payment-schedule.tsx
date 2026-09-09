@@ -8,14 +8,14 @@ const fmtMoney = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 
 export function PaymentSchedule({
-  plotId,
-  plotSlug,
+  gardenId,
+  plotRef,
   price,
   payments,
   canEdit,
 }: {
-  plotId: string;
-  plotSlug: string;
+  gardenId: string;
+  plotRef: string;
   price: number;
   payments: Payment[];
   canEdit: boolean;
@@ -67,8 +67,8 @@ export function PaymentSchedule({
         </>
       )}
       <PaymentsDialog
-        plotId={plotId}
-        plotSlug={plotSlug}
+        gardenId={gardenId}
+        plotRef={plotRef}
         price={price}
         payments={payments}
         canEdit={canEdit}

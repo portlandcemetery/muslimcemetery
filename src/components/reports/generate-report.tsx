@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { ReportType } from "@/lib/data/reports";
+import type { ReportType } from "@/services/reports/build-csv";
 
 type Report = { name: string; desc: string; icon: LucideIcon; type: ReportType };
 

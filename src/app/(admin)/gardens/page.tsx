@@ -1,37 +1,58 @@
-import { Suspense } from "react";
+"use client";
+
+import { useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { GardenView } from "@/components/gardens/garden-view";
-import { getGardens, getMapRows, getMyPlotIds } from "@/lib/data/gardens";
-import { requireProfile } from "@/lib/data/auth";
-import { isStaff } from "@/lib/types";
+import { buildRowsFromPlots } from "@/components/gardens/garden-data";
+import { PageLoader } from "@/components/page-loader";
+import { useTRPC } from "@/services/trpc/client";
 
-export default async function GardensPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ garden?: string }>;
-}) {
-  const [profile, gardens, params] = await Promise.all([
-    requireProfile(),
-    getGardens(),
-    searchParams,
-  ]);
+export default function GardensPage() {
+  const trpc = useTRPC();
+  const searchParams = useSearchParams();
+  const gardenParam = searchParams.get("garden") ?? undefined;
 
-  if (gardens.length === 0) {
-    throw new Error("No gardens configured.");
+  const me = useQuery(trpc.auth.me.queryOptions());
+  const gardens = useQuery(trpc.gardens.list.queryOptions());
+
+  const list = gardens.data ?? [];
+  const gardenId =
+    list.find((g) => g.id === gardenParam)?.id ?? list[0]?.id ?? "";
+
+  const role = me.data?.role;
+  const viewer = role === "viewer";
+
+  const map = useQuery(
+    trpc.gardens.map.queryOptions(
+      { gardenId },
+      { enabled: !!gardenId && !!role }
+    )
+  );
+  const myIds = useQuery(
+    trpc.gardens.myPlotIds.queryOptions(undefined, { enabled: viewer })
+  );
+
+  const minePlotIds = useMemo(
+    () => (viewer ? new Set(myIds.data ?? []) : undefined),
+    [viewer, myIds.data]
+  );
+
+  const rows = useMemo(
+    () => buildRowsFromPlots(map.data ?? [], minePlotIds),
+    [map.data, minePlotIds]
+  );
+
+  if (!role || !gardenId) {
+    return <PageLoader />;
   }
-  const gardenId = gardens.some((g) => g.id === params.garden)
-    ? params.garden!
-    : gardens[0].id;
-  const minePlotIds = isStaff(profile.role) ? undefined : await getMyPlotIds();
-  const rows = await getMapRows(gardenId, minePlotIds);
 
   return (
-    <Suspense>
-      <GardenView
-        gardens={gardens}
-        gardenId={gardenId}
-        rows={rows}
-        role={profile.role}
-      />
-    </Suspense>
+    <GardenView
+      gardens={list}
+      gardenId={gardenId}
+      rows={rows}
+      role={role}
+    />
   );
 }
