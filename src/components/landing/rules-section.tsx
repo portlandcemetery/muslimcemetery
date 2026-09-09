@@ -2,13 +2,12 @@ import { Card } from "@/components/ui/card";
 import { Diamond } from "@/components/diamond";
 
 const RULES = [
-  "Visiting hours are strictly from dawn to dusk daily.",
-  "Only live plants or fresh-cut flowers are permitted; no artificial flowers.",
-  "In accordance with Sunnah, all headstones must face the Qibla.",
-  "Modest dress is required at all times while on cemetery grounds.",
-  "Children under 12 must be supervised by an adult at all times.",
-  "No pets are allowed inside the memorial gardens.",
-  "Please maintain silence and respect the dignity of the space.",
+  "Every grave must be identified by a grave stone, installed flush with the cemetery ground — not at grass level.",
+  "Grave markers follow a standard size; permitted information is limited to the name and the dates of birth and death.",
+  "Planting flowers or plants on a grave is not allowed; only potted plants in containers may be placed.",
+  "Burial follows a first-come, first-served master plan — gravesites are assigned by the cemetery.",
+  "Women are welcome to attend the funeral service.",
+  "The full Cemetery Rules & Regulations booklet is available from the office on request.",
 ];
 
 export function RulesSection() {

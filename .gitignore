@@ -40,4 +40,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.playwright-mcp
+.playwright-mcplanding-full.jpeg
+landing-mobile.jpeg
+header-mobile-open.jpeg
+.playwright-mcp/
